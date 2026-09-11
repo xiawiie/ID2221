@@ -2,6 +2,18 @@
 
 ## 2026-09-11
 
+## 2026-09-12
+
+### 阶段 11：独立复审与任务符合性测试
+- **状态：** complete
+- 用户要求对项目做 review 和测试，并严格对照 `docs/assignment_and_implementation.md` 分析完成度。
+- 4 张附件 PNG 存在但当前通道无法渲染，且本机/WSL 无 OCR；仅记录该限制，不据截图扩大或改变任务范围。
+- 提取任务 1–6、交付物和建议验收标准，复审源代码、报告与 artifact 一致性；判定项目功能上大幅完成，但不是严格 100% 符合。
+- 发现 2 个 P1：supplied schema 读取使 schema 校验变成同义反复；Delta overwrite 后统计全部物理文件使 benchmark 存储/file count 不可重复。
+- 发现 5 个 P2/P3 主要偏差：空气质量候选键未强制、失败/跳过运行无 metadata、benchmark 写入时间定义不符、天气时区政策内部冲突、Gold 删除观测时间且无 lag 字段；另有 stale quarantine、README 冷启动和测试覆盖不足。
+- 复跑基准后最新 JSON 查询中位数为未分区 1,727.471 / 1,838.101 / 1,679.430 ms、分区 3,617.319 / 3,465.129 / 3,396.049 ms；结果 SHA-256 一致。物理文件数因 obsolete Delta 文件变为 40/92，`docs/benchmark_report.md` 仍为首轮 20/46 与首轮中位数，形成报告/artifact 不一致。
+- 反向测试确认错误 CSV/Parquet 物理 schema 可通过校验、空气质量合成重复候选键不进 quarantine、Gold 四个审计字段不存在。
+
 ### 阶段 7：运行环境与项目骨架
 - **状态：** complete
 - 锁定 WSL 运行栈：OpenJDK 17、Python 3.12（`.venv-wsl`）、PySpark 3.5.7、delta-spark 3.3.2。
@@ -10,7 +22,29 @@
 - `taxi_2024_01` 完成 Bronze/Silver/Quarantine 摄取：读入 2,964,624 行，接受 2,963,754，隔离 870，告警 86,241；重复运行按源哈希跳过。
 
 ### 阶段 8：通用摄取与四类数据
-- **状态：** pending（下一步）
+- **状态：** complete
+- 继续上次中断前留下的通用摄取实现；工作区已有 `src/urban_data/ingest.py` 的 quarantine 按源替换修正，本轮保留并核验。
+- 现有两个配置测试以直接函数调用执行，2/2 通过；`pytest` 模块本身缺失，已记录。
+- 3 月出租车摄取确认成功：读入 3,582,628，接受 3,581,500，隔离 1,128。
+- 空气质量重复命令按同哈希跳过，元数据和表存在性将在统一验收脚本中确认。
+- 修复共享出租车 Silver 的分区覆盖缺陷：新增稳定 `source_file_month` 覆盖分区，保留业务 `pickup_month` 普通列；三个月强制重建后总行数恢复正确。
+- `scripts/verify_ingestion.py` 验收通过，机器可读结果写入 `artifacts/ingestion_verification.json`：Bronze 六项、Silver 四表、taxi quarantine 2,801 行、区域/天气/空气质量唯一键全部匹配。
+
+### 阶段 9：集成流水线
+- **状态：** complete
+- 发现并修复 Spark 时间语义缺陷：同时固定进程 `TZ`、SQL session timezone 和 Driver JVM timezone 为 UTC 后，出租车/天气/空气质量边界时间与源画像一致。
+- 已按 UTC 语义强制重建三个月出租车、天气和空气质量 Silver；行数与隔离数保持不变，出租车告警数修正为 37,637 / 40,816 / 58,740。
+- 第一次 Gold 写入在 `local[*]` 与 Driver 默认 1 GB 堆下 OOM；连接行数检查尚未报错。已改为 `local[8]` 和 4 GB Driver 堆后重跑。
+- `integrate` 成功写出 `lakehouse/gold/integrated_taxi_trips/`：Silver 与 Gold 均为 9,551,977 行；四次连接后行数均不变。
+- `scripts/verify_integration.py` 从磁盘重读 Gold 并通过：三个 source month 分区计数对账，区域匹配 9,551,977/9,551,977，天气与空气质量各 19 条 missing，1 个重复行程指纹仅报告。
+
+### 阶段 10：基准与最终交付
+- **状态：** complete
+- 基准命令成功比较未分区与按 `pickup_month` 分区两版 9,551,977 行 Delta 表，使用相同输入、Snappy 压缩、1 次预热和 3 次测量。
+- 未分区表：写入 67.166 s、827.74 MiB、20 个数据文件；分区表：写入 54.622 s、833.02 MiB、46 个数据文件。
+- 三条查询中位数：未分区 1,670.160 / 1,468.995 / 1,639.759 ms；分区 3,255.404 / 3,608.642 / 3,391.770 ms；两版结果 SHA-256 一致。
+- 新增 `src/urban_data/benchmark.py`、`docs/benchmark_report.md`、`docs/design_report.md` 和 `artifacts/benchmark_report.json`、`artifacts/benchmark_physical_plans.json`。
+- README 与 `docs/assignment_and_implementation.md` 已同步最终状态、实际 WSL 命令和剩余限制。
 
 ### 阶段 1：项目与数据盘点
 - **状态：** complete
@@ -73,8 +107,20 @@
 | Markdown 与方案文档 | 路径有效、可行性章节完整 | 通过 | 通过 |
 | 项目规则体量 | AGENTS.md 不超过 60 行 | 49 行 | 通过 |
 | `.gitignore` 内容 | 11 个必需模式完整 | 11/11 | 通过 |
-| `.gitignore` Git 行为 | 在 Git 仓库中验证忽略与例外 | 尚未初始化仓库 | pending |
+| `.gitignore` Git 行为 | 在 Git 仓库中验证忽略与例外 | 源数据、虚拟环境、lakehouse 被忽略；证据 JSON 未被忽略 | 通过 |
 | 双数据目录 | 两个目录均保留且职责明确 | 各 8 个文件、2,593,502,350 字节 | 通过 |
+| 最终配置测试 | 标准 `unittest` 命令通过 | 2 tests, OK | 通过 |
+| 最终语法编译 | 源代码、测试和验证脚本有效 | compileall 无错误 | 通过 |
+| Markdown 本地链接 | 8 个项目 Markdown 的本地目标存在 | 通过 | 通过 |
+| 证据 JSON | 5 份机器可读结果可解析 | profile、ingestion、integration、benchmark、plans 均有效 | 通过 |
+| 基准报告对账 | 报告数值来自 JSON | 6/6 关键数值一致 | 通过 |
+| NYC 空气质量筛选 | 五个纽约市县名全部保留，非 NYC 县排除 | 5/5 expected counties retained | 通过 |
+| 阶段 11 单元测试 | 标准 unittest 命令通过 | 2 tests, OK | 通过 |
+| 阶段 11 语法编译 | 源代码、测试和验证脚本可编译 | compileall 无错误 | 通过 |
+| 阶段 11 证据状态 | ingestion/integration artifact 为 passed | 两份 JSON 均 passed；Gold/Silver 均 9,551,977 行 | 通过 |
+| 阶段 11 schema 反向检查 | 物理列名不匹配应拒绝 | CSV/Parquet 反例均通过，校验无效 | 失败 |
+| 阶段 11 空气键反向检查 | 重复候选键应 quarantine | 1 小时行 / 0 quarantine / 2 站点观测 | 失败 |
+| 阶段 11 benchmark 对账 | 报告与最新 JSON 一致 | 文档仍为首轮 20/46 文件和首轮中位数 | 失败 |
 
 ## 错误日志
 | 时间 | 错误 | 处理 |
@@ -88,11 +134,22 @@
 | 2026-09-11 | pip 的 PySpark 下载临时文件持续为 0 字节 | 中止原会话，改用 PyPI 固定 URL 与哈希进行本地缓存安装 |
 | 2026-09-11 | 三次工具调用输入或补丁文本无效 | 调用均未改代码/数据；读取精确上下文并修正 findings |
 
+| 2026-09-11 | `.venv-wsl` 中 `python -m pytest` 失败：No module named pytest | 改为直接导入并调用两个测试函数，均通过；未新增依赖 |
+| 2026-09-11 | 两次嵌套 `python -c` 引号在 PowerShell/Bash 边界解析失败 | 改用 `wsl --cd ... env PYTHONPATH=...` 形式执行成功 |
+| 2026-09-12 | 仅设置 `spark.sql.session.timeZone=UTC` 后时间仍偏移 8 小时 | 增加进程 `TZ=UTC` 与 Driver `-Duser.timezone=UTC`，时间函数冒烟和三类边界值验证通过 |
+| 2026-09-12 | Gold 写入阶段 Java heap space OOM | 将本地 Spark 从 32 线程降为 8 线程，Driver 堆提升到 4 GB |
+| 2026-09-12 | 集成验收脚本两处把 Spark Row 的 `count` 读成内建方法 | 改用 `row["count"]` 后验收通过；数据未受影响 |
+| 2026-09-12 | 首轮 Gold 基准后实现文档仍保留“未实现”和旧分区建议 | 按最终实测结果更新状态、命令和剩余限制 |
+| 2026-09-12 | Markdown 链接检查递归进入 `.venv-wsl/lib64` 符号链接失败 | 改用 `rg --files` 枚举 Git 工作区 Markdown 后通过 |
+| 2026-09-12 | 五县过滤首次冒烟用例缺少 `parameter_code` 列导致 AnalysisException | 补齐生产 schema 中的列后重跑通过；被检代码无需修改 |
+| 2026-09-12 | 复核版本时误用不存在的 `delta.__version__` | 改用 `importlib.metadata.version("delta-spark")`，得到 3.3.2 |
+| 2026-09-12 | 附件 PNG 当前通道无法渲染且无 OCR | 不把截图当证据，以 `docs/assignment_and_implementation.md` 为复审依据 |
+
 ## 五问重启检查
 | 问题 | 答案 |
 | --- | --- |
-| 我在哪里？ | 阶段 7：等待建立兼容运行环境与单月端到端切片 |
-| 我要去哪里？ | 项目骨架、通用摄取、集成、基准和最终交付 |
-| 目标是什么？ | 在当前目录建立可直接继续实现的 ID2221 Spark + Delta 项目基线 |
+| 我在哪里？ | 阶段 11 独立复审与任务符合性测试已完成 |
+| 我要去哪里？ | 无剩余 review/testing 步骤；如继续，仅处理用户要求的修复、文档同步或提交 |
+| 目标是什么？ | 在当前目录交付可运行的 ID2221 Spark + Delta 摄取、集成和基准项目 |
 | 我学到了什么？ | 见 findings.md |
 | 我做了什么？ | 见本文件上方记录 |

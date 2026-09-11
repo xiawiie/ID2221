@@ -13,6 +13,7 @@ from urban_data.transforms import (
     aggregate_air_hourly,
     file_sha256,
     filter_air_quality_nyc,
+    normalize_air_quality_columns,
     new_run_id,
     split_air_station_quality,
     split_taxi_quality,
@@ -162,11 +163,30 @@ def ingest_taxi_dataset(spark: SparkSession, cfg: dict, *, force: bool = False) 
         )
 
     rows_warned = accepted.filter(F.col("quality_flags").isNotNull()).count()
-    _write_delta(accepted, silver_path, partition_by=["pickup_month"], mode="overwrite")
+    silver_writer = (
+        accepted.write.format("delta")
+        .mode("overwrite")
+        .partitionBy("source_file_month")
+        .option("mergeSchema", "true")
+    )
+    if silver_path.exists():
+        silver_writer = silver_writer.option(
+            "replaceWhere", f"source_file_month = '{cfg['file_month']}'"
+        )
+    silver_writer.save(str(silver_path))
     quarantined = quarantined.withColumn(
         "quarantine_reason", F.lit("invalid_trip_times_or_null_ts")
     )
-    _write_delta(quarantined, quarantine_path, partition_by=["pickup_month"], mode="overwrite")
+    quarantine_writer = (
+        quarantined.write.format("delta")
+        .mode("overwrite")
+        .option("mergeSchema", "true")
+    )
+    if quarantine_path.exists():
+        quarantine_writer = quarantine_writer.option(
+            "replaceWhere", f"_source_file = '{rel_source}'"
+        )
+    quarantine_writer.save(str(quarantine_path))
 
     return _finish_run(
         spark,
@@ -336,7 +356,8 @@ def ingest_air_quality_dataset(spark: SparkSession, cfg: dict, *, force: bool = 
         .csv(str(source_path))
     )
     _validate_columns(raw, AIR_QUALITY_RAW_SCHEMA)
-    filtered = filter_air_quality_nyc(raw)
+    normalized = normalize_air_quality_columns(raw)
+    filtered = filter_air_quality_nyc(normalized)
     rows_read = filtered.count()
     if rows_read != cfg["expected_bronze_rows"]:
         raise ValueError(

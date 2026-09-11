@@ -74,7 +74,8 @@ def taxi_silver_columns(df: DataFrame, file_month: str) -> DataFrame:
         "pickup_ts_local"
     )
     return (
-        df.withColumn(
+        df.withColumn("source_file_month", F.lit(file_month))
+        .withColumn(
             "trip_duration_minutes",
             (duration_seconds / F.lit(60.0)).cast("double"),
         )
@@ -259,27 +260,52 @@ def split_weather_quality(df: DataFrame) -> tuple[DataFrame, DataFrame]:
 
 def filter_air_quality_nyc(df: DataFrame) -> DataFrame:
     return df.filter(
-        (F.col("State Code") == "36")
-        & (F.col("County Name").isin("Bronx", "Kings", "Queens"))
-        & (F.col("Parameter Code") == "88101")
+        (F.col("state_code") == "36")
+        & (
+            F.col("county_name").isin(
+                "Bronx", "Kings", "New York", "Queens", "Richmond"
+            )
+        )
+        & (F.col("parameter_code") == "88101")
+    )
+
+
+def normalize_air_quality_columns(df: DataFrame) -> DataFrame:
+    return (
+        df.withColumnRenamed("State Code", "state_code")
+        .withColumnRenamed("County Code", "county_code")
+        .withColumnRenamed("Site Num", "site_num")
+        .withColumnRenamed("Parameter Code", "parameter_code")
+        .withColumnRenamed("POC", "poc")
+        .withColumnRenamed("Latitude", "latitude")
+        .withColumnRenamed("Longitude", "longitude")
+        .withColumnRenamed("Datum", "datum")
+        .withColumnRenamed("Parameter Name", "parameter_name")
+        .withColumnRenamed("Date Local", "date_local")
+        .withColumnRenamed("Time Local", "time_local")
+        .withColumnRenamed("Date GMT", "date_gmt")
+        .withColumnRenamed("Time GMT", "time_gmt")
+        .withColumnRenamed("Sample Measurement", "pm25")
+        .withColumnRenamed("Units of Measure", "units_of_measure")
+        .withColumnRenamed("MDL", "mdl")
+        .withColumnRenamed("Uncertainty", "uncertainty")
+        .withColumnRenamed("Qualifier", "qualifier")
+        .withColumnRenamed("Method Type", "method_type")
+        .withColumnRenamed("Method Code", "method_code")
+        .withColumnRenamed("Method Name", "method_name")
+        .withColumnRenamed("State Name", "state_name")
+        .withColumnRenamed("County Name", "county_name")
+        .withColumnRenamed("Date of Last Change", "date_of_last_change")
     )
 
 
 def air_station_silver(df: DataFrame) -> DataFrame:
-    return (
-        df.withColumn(
-            "observation_ts_utc",
-            F.to_timestamp(F.concat_ws(" ", F.col("Date GMT"), F.col("Time GMT"))),
-        )
-        .withColumnRenamed("State Code", "state_code")
-        .withColumnRenamed("County Code", "county_code")
-        .withColumnRenamed("Site Num", "site_num")
-        .withColumnRenamed("County Name", "county_name")
-        .withColumnRenamed("Sample Measurement", "pm25")
-        .withColumn(
-            "site_key",
-            F.concat_ws("/", F.col("county_name"), F.col("site_num")),
-        )
+    return df.withColumn(
+        "observation_ts_utc",
+        F.to_timestamp(F.concat_ws(" ", F.col("date_gmt"), F.col("time_gmt"))),
+    ).withColumn(
+        "site_key",
+        F.concat_ws("/", F.col("county_name"), F.col("site_num")),
     )
 
 

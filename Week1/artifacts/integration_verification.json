@@ -1,0 +1,24 @@
+{
+  "status": "passed",
+  "silver_rows": 9551977,
+  "gold_rows": 9551977,
+  "partition_counts": {
+    "2024-03": 3581500,
+    "2024-01": 2963754,
+    "2024-02": 3006723
+  },
+  "zone_statuses": {
+    "pickup_matched": 9551977,
+    "dropoff_matched": 9551977
+  },
+  "weather_statuses": {
+    "matched": 9551958,
+    "missing": 19
+  },
+  "air_quality_statuses": {
+    "matched": 9551958,
+    "missing": 19
+  },
+  "duplicate_trip_ids": 1,
+  "trip_id_note": "Source has no proven unique trip key; duplicates are reported, not removed."
+}

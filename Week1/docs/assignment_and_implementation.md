@@ -1,8 +1,8 @@
 # 城市数据集作业：完整中文翻译、数据盘点与实施方案
 
 > 项目根目录：`C:/Users/goahe/Desktop/ID2221/Week1`  
-> 当前状态：原始数据、完整性校验、数据画像和设计文档已完成；Spark + Delta 流水线尚未实现。  
-> 机器可读证据：`artifacts/data_profile.json`，可用 `python scripts/profile_data.py` 重新生成。
+> 当前状态：Spark + Delta 摄取、验证、集成、基准测试和最终报告已完成。
+> 设计结论见 [design_report.md](design_report.md)，基准结论见 [benchmark_report.md](benchmark_report.md)，运行命令以 [README.md](../README.md) 为准。原始数据画像证据为 `artifacts/data_profile.json`。
 
 ## 一、文档内容 1:1 中文翻译
 
@@ -230,9 +230,9 @@ Week1/
 ├── datasets/                          已验证的项目输入
 │   ├── *.csv, *.parquet, air_quality.zip
 │   └── SHA256SUMS.txt
-├── config/datasets.yml                [计划] 四个数据契约
-├── src/urban_data/                     [计划] Spark + Delta 实现
-├── tests/                              [计划] 最小直接测试
+├── config/datasets.yml                 四个数据契约
+├── src/urban_data/                     Spark + Delta 实现
+├── tests/                              标准库 unittest
 ├── scripts/profile_data.py            已实现的数据画像工具
 ├── artifacts/data_profile.json        已生成的画像证据
 ├── docs/assignment_and_implementation.md
@@ -276,8 +276,8 @@ flowchart LR
 - `taxi_zone_lookup` 不分区：只有 265 行，分区只会制造小文件和目录开销。
 - `weather` 当前不分区：全年只有 8,784 行，整表广播比目录裁剪更简单。
 - 空气质量全国原表有 814 万行，Silver 可按 `year_month` 分区，并在摄取初期就按州/县裁剪项目所需范围。纽约市聚合后的小时表只有 8,784 行，不再分区并可广播。
-- 出租车 Silver 和集成 Gold 表可先按 `pickup_month` 分区，并控制每个分区的输出文件数。当前仅三个月、约 956 万行，不建议按区域或小时分区。
-- 基准测试应比较“未分区”与“按 `pickup_month` 分区”两版。如果月分区仍产生很小文件或全表聚合更慢，应接受未分区更适合当前样本的结论。
+- 出租车 Silver 和集成 Gold 表按稳定的 `source_file_month` 分区，用于安全重建每个月的源文件输出；业务派生的 `pickup_month` 保留为普通列，避免文件月份外的行程覆盖其他月份分区。
+- 基准测试比较“未分区”与“按 `pickup_month` 分区”两版。实测三条全范围查询均未分区更快，因此未分区是当前查询负载的默认结论；只有月过滤或保留策略成为主要负载时才重新引入月分区。
 - 分区在以下情况下有害：分区键高基数、数据严重倾斜、单分区数据太少、查询不按分区键过滤，或写入产生大量小文件。
 - 数据量增加 20 倍后，再根据真实查询过滤模式考虑按日分区、周期性压缩小文件、按时间和区域聚簇，并把目标文件大小控制在约 128–256 MB。不要仅因数据变大就增加分区层级。
 
@@ -307,16 +307,16 @@ src/urban_data/
 └── benchmark.py    两种存储策略、三条查询和指标落盘
 ```
 
-计划中的命令合同为：
+实际命令合同由 README 的 WSL 包装脚本提供：
 
 ```powershell
-python -m urban_data ingest --dataset all
-python -m urban_data integrate
-python -m urban_data benchmark
-python -m pytest
+wsl bash -lc "cd /mnt/c/Users/goahe/Desktop/ID2221/Week1 && bash scripts/run_wsl.sh ingest --dataset all"
+wsl bash -lc "cd /mnt/c/Users/goahe/Desktop/ID2221/Week1 && bash scripts/run_wsl.sh integrate"
+wsl bash -lc "cd /mnt/c/Users/goahe/Desktop/ID2221/Week1 && bash scripts/run_wsl.sh benchmark"
+wsl bash -lc "cd /mnt/c/Users/goahe/Desktop/ID2221/Week1 && PYTHONPATH=src .venv-wsl/bin/python -m unittest discover -s tests"
 ```
 
-这些命令目前尚未实现。正式编码前先确认课程运行环境，再锁定兼容的 Java、Spark、PySpark 和 Delta Lake 版本；不能把当前数据画像使用的 Python 3.13.9 直接等同于未来 Spark 运行版本。
+已验证运行环境为 WSL Ubuntu、OpenJDK 17、Python 3.12、PySpark 3.5.7 和 delta-spark 3.3.2。
 
 ### 5. 集成流水线
 
@@ -381,20 +381,20 @@ python -m pytest
 
 ### 1. 总体结论
 
-方案在当前机器上具备课程级本地实现条件，但 Spark + Delta 运行环境尚未建立，因此当前状态是“数据与设计已验证，执行环境待就绪”，不能写成“流水线可运行”。本机有 16 核/32 线程、31.2 GiB 内存和约 563.2 GiB 的 C 盘可用空间，足以完成当前约 956 万条出租车记录和 814 万条空气质量记录的开发与基准实验。实现时必须避免把 2.37 GB 空气质量 CSV `collect()` 到 Driver，并在读取后尽早筛选纽约范围。
+方案已在当前机器完成课程级本地实现：摄取、Gold 集成和基准测试均可运行并已验收。本机有 16 核/32 线程、31.2 GiB 内存和约 563.2 GiB 的 C 盘可用空间，足以完成当前约 956 万条出租车记录和 814 万条空气质量记录的开发与基准实验。实现避免了把 2.37 GB 空气质量 CSV `collect()` 到 Driver，并在读取后尽早筛选纽约范围。
 
-当前 PATH 中没有 Java 或 `spark-submit`，Python 3.13.9 环境也没有 PySpark 和 Delta 包。正式编码前应创建隔离环境并锁定一组经课程环境确认的兼容版本。若课程没有指定版本，可把 JDK 17、Python 3.11、Spark 3.5.x 与 Delta Lake 3.2.x 作为候选组合进行冒烟验证，但候选不能在验证前写成项目既定版本。
+Spark 运行态使用项目内 `.venv-wsl` 隔离环境：OpenJDK 17、Python 3.12、PySpark 3.5.7、delta-spark 3.3.2。本地 Spark 使用 `local[8]` 和 4 GB Driver 堆，避免 Gold 写入阶段的内存压力。
 
 ### 2. 设计可行性矩阵
 
 | 设计项 | 结论 | 现有证据 | 限制或前置条件 | 验收方法 |
 | --- | --- | --- | --- | --- |
 | CSV、Parquet 通用摄取 | 可行 | 只有两种输入格式，schema 已画像 | 必须显式 schema，不能每次推断 | 四类 Bronze 表行数与输入对账 |
-| Bronze、Silver、Gold Delta 分层 | 条件可行 | 分层与作业要求一致，磁盘充足 | Java、Spark、Delta 版本尚未安装验证 | Delta 写入、重启后读取、schema 与行数一致 |
+| Bronze、Silver、Gold Delta 分层 | 已实现并验证 | 六个 Bronze、四个 Silver 和一个 Gold Delta 表均已写出并重读 | WSL 隔离环境运行 | Delta 写入、重启后读取、schema 与行数一致 |
 | 数据集配置驱动 | 可行 | 四类数据共享读取、元数据和写入流程 | 配置只保存数据差异，不实现通用编程语言 | 新增一个同格式月份无需复制摄取代码 |
-| 出租车月分区 | 可行但收益待测 | 当前只有 3 个月，约 956 万行 | 指定查询多为全表聚合，分区可能无收益 | 与未分区版本比较时间、字节和文件数 |
+| 出租车月分区 | 已实测，不作为当前默认 | 当前只有 3 个月，约 956 万行 | 三条指定查询均为全范围聚合 | 与未分区版本比较时间、字节和文件数 |
 | 区域维表连接 | 可行 | 265 个唯一 `LocationID`，当前行程区域全部命中 | 必须分别广播连接上车和下车键 | 每次连接前后行程数不变，未匹配数为 0 |
-| 天气小时连接 | 条件可行 | 8,784 个小时完整且唯一 | 时区和站点含义未确认 | 确认时区后测试首尾小时、夏令时边界和匹配率 |
+| 天气小时连接 | 已实现，语义带限制 | 8,784 个小时完整且唯一，按本地墙钟小时连接 | 源数据未声明站点和时区 | 连接前后行数不变，缺失状态可追踪 |
 | 空气质量小时连接 | 可行，限全市语义 | 纽约子集全年每小时 4–6 条、共 8,784 个小时 | 只覆盖 Bronx、Kings、Queens，不能声称是区域级暴露 | 先按 GMT 小时聚合为唯一行，再检查连接不膨胀 |
 | 一行一行程 Gold 表 | 条件可行 | 区域键完整，环境数据可先变成唯一小时键 | 出租车无显式 trip ID；异常记录规则待定 | 接受行程数等于 Gold 行数，主键/行指纹无意外重复 |
 | 20 倍扩展 | 架构可行，本机执行待测 | 时间分区、增量摄取和 Delta 文件管理可扩展 | 本机资源是否足够不能从当前样本推导 | 用放大数据或受控生成数据测吞吐、spill 和文件数量 |
@@ -485,10 +485,10 @@ python -m pytest
 
 **通过门：** 源代码、配置、设计报告、架构图、基准报告和 README 五项交付物全部可定位，README 冷启动复现成功。
 
-### 6. 当前阻塞与非阻塞项
+### 6. 当前剩余限制
 
-- **阻塞编码环境：** Java、Spark、PySpark、Delta 尚未安装或配置。
-- **阻塞天气集成发布：** 天气时区与站点语义尚未确认。
-- **不阻塞开始：** 负金额业务解释尚未确认；第一版可以保留并告警。
-- **不阻塞开始：** 出租车没有天然主键；可先保留来源文件和规范化行指纹，在重复测试后确定最终策略。
-- **不阻塞开始：** 两个数据目录都保留；项目已明确只读取 `Week1/datasets`。
+- **天气语义：** 源文件未声明站点和时区；实现显式按本地墙钟小时连接，并保留该不确定性。
+- **空气质量语义：** 纽约站点只覆盖 Bronx、Kings、Queens；连接值是城市级小时聚合，不是区域级暴露。
+- **业务规则：** 负金额、极端距离和文件月份外时间保留并告警，未获得课程规则前不删除。
+- **行程键：** 源数据没有可证明唯一自然键；生成的行程指纹只用于审计，未用于静默去重。
+- **数据边界：** 两个数据目录均保留；项目只读取 `Week1/datasets`，不读取或同步同级镜像。

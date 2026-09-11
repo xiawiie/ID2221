@@ -3,6 +3,8 @@ import json
 import sys
 
 from urban_data.config import load_datasets_config, resolve_dataset
+from urban_data.benchmark import benchmark_taxi_storage
+from urban_data.integrate import integrate_taxi_trips
 from urban_data.ingest import ingest_dataset
 from urban_data.spark_session import build_spark
 
@@ -33,6 +35,9 @@ def main(argv: list[str] | None = None) -> int:
         help="Re-ingest even if the same source hash already succeeded",
     )
 
+    sub.add_parser("integrate", help="Build the integrated taxi-trips Gold table")
+    sub.add_parser("benchmark", help="Compare two taxi Delta storage strategies")
+
     args = parser.parse_args(argv)
     if args.command == "ingest":
         results = []
@@ -44,6 +49,22 @@ def main(argv: list[str] | None = None) -> int:
             finally:
                 spark.stop()
         print(json.dumps(results if len(results) > 1 else results[0], default=str, indent=2, sort_keys=True))
+        return 0
+
+    if args.command == "integrate":
+        spark = build_spark(app_name="urban-data-integrate")
+        try:
+            print(json.dumps(integrate_taxi_trips(spark), default=str, indent=2, sort_keys=True))
+        finally:
+            spark.stop()
+        return 0
+
+    if args.command == "benchmark":
+        spark = build_spark(app_name="urban-data-benchmark")
+        try:
+            print(json.dumps(benchmark_taxi_storage(spark), default=str, indent=2, sort_keys=True))
+        finally:
+            spark.stop()
         return 0
 
     return 1

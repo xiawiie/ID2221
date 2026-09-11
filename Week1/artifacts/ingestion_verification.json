@@ -1,0 +1,57 @@
+{
+  "status": "passed",
+  "bronze": {
+    "taxi_trips/yellow_tripdata_2024-01": 2964624,
+    "taxi_trips/yellow_tripdata_2024-02": 3007526,
+    "taxi_trips/yellow_tripdata_2024-03": 3582628,
+    "taxi_zones": 265,
+    "weather_hourly": 8784,
+    "air_quality_hourly_nyc": 51885
+  },
+  "silver": {
+    "taxi_trips": 9551977,
+    "taxi_zones": 265,
+    "weather_hourly": 8784,
+    "air_quality_hourly_nyc": 8784
+  },
+  "quarantine": {
+    "taxi_trips": 2801
+  },
+  "metadata": {
+    "air_quality_nyc": {
+      "rows_read": 51885,
+      "rows_accepted": 8784,
+      "rows_quarantined": 0
+    },
+    "taxi_2024_03": {
+      "rows_read": 3582628,
+      "rows_accepted": 3581500,
+      "rows_quarantined": 1128
+    },
+    "taxi_2024_01": {
+      "rows_read": 2964624,
+      "rows_accepted": 2963754,
+      "rows_quarantined": 870
+    },
+    "taxi_2024_02": {
+      "rows_read": 3007526,
+      "rows_accepted": 3006723,
+      "rows_quarantined": 803
+    },
+    "taxi_zones": {
+      "rows_read": 265,
+      "rows_accepted": 265,
+      "rows_quarantined": 0
+    },
+    "weather": {
+      "rows_read": 8784,
+      "rows_accepted": 8784,
+      "rows_quarantined": 0
+    }
+  },
+  "unique_keys": {
+    "taxi_zones.location_id": 265,
+    "weather_hourly.observation_ts_local": 8784,
+    "air_quality_hourly_nyc.observation_ts_utc": 8784
+  }
+}

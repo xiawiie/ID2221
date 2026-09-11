@@ -1,66 +1,72 @@
 # ID2221 Urban Data Integration Platform
 
-本目录是 Week 1 Assignment 的项目根目录。目标是用 Spark 和 Delta Lake 构建可复用的数据摄取、验证、标准化、集成和基准测试流水线。
+This is the complete Week 1 Spark + Delta project. It ingests and validates three taxi months, taxi zones, hourly weather, and NYC hourly PM2.5; builds the integrated Gold table; and benchmarks two taxi storage layouts.
 
-## 当前状态
+## Verified Result
 
-- 6 个权威源文件的 SHA-256 已全部通过。
-- `hourly_88101_2024.csv` 已确认与 `air_quality.zip` 内唯一条目逐字节一致。
-- 四类数据的 schema、行数、时间范围、空值、候选键和主要异常已画像。
-- Assignment 中文翻译、数据目录、架构和详细实现路径已整理。
-- 项目数据路径已统一为 `datasets/`，迁移后的画像命令已重新验证。
-- WSL 运行环境已就绪：OpenJDK 17、PySpark 3.5.7、delta-spark 3.3.2；Delta 写读冒烟测试通过。
-- 2024-01 出租车数据已实现 Bronze → Silver 端到端摄取（含 quarantine 与幂等跳过）。
-- 区域、天气、空气质量摄取与 Gold 集成、基准测试尚未实现。
-- 当前目录尚未初始化为 Git 仓库。
+- Bronze and Silver ingestion: 9,554,778 taxi source rows, 9,551,977 accepted rows, 2,801 quarantined rows.
+- Dimension and environment tables: 265 zones, 8,784 weather hours, and 8,784 NYC PM2.5 hours.
+- Gold `integrated_taxi_trips`: 9,551,977 rows, one row per accepted taxi trip.
+- Zone matching is complete. Weather and PM2.5 each have 19 unmatched historical out-of-2024 trips; NULL values and match statuses are retained.
+- Benchmark: the unpartitioned layout is faster for all three assigned full-range queries. See [benchmark report](docs/benchmark_report.md).
 
-## 数据概览
+## Requirements
 
-| 逻辑数据集 | 输入文件 | 已确认规模 |
-| --- | --- | --- |
-| 出租车行程 | `datasets/yellow_tripdata_2024-01/02/03.parquet` | 9,554,778 行 |
-| 天气 | `datasets/weather.csv` | 8,784 行，2024 全年逐小时 |
-| 空气质量 | `datasets/air_quality.zip` / 等价解压 CSV | 全国 8,139,551 行；纽约市子集 51,885 行 |
-| 出租车区域 | `datasets/taxi_zone_lookup.csv` | 265 行，`LocationID` 唯一 |
+- Windows with WSL Ubuntu
+- OpenJDK 17 available inside WSL
+- Python 3.12 support in WSL
+- Approximately 4 GB memory available to the Spark Driver
+- Project datasets under `datasets/`; source files are read-only inputs
 
-`Week1/datasets/` 中的 CSV、Parquet 和 ZIP 是项目的只读输入。后续 Delta 表和运行产物写入 `lakehouse/`，不得覆盖源文件。
+The profiling utility also needs a host Python with pandas and PyArrow. The Spark pipeline itself uses the isolated WSL environment.
 
-同级目录 `C:/Users/goahe/Desktop/ID2221/datasets` 按用户要求保留为镜像。项目代码不读取该镜像，也不自动同步两个目录；运行与提交均以 `Week1/datasets/` 为准。
+## Setup
 
-## 现有命令
+```powershell
+wsl bash -lc "cd /mnt/c/Users/goahe/Desktop/ID2221/Week1 && bash scripts/bootstrap_wsl.sh"
+```
 
-数据完整性检查与画像：
+This creates `.venv-wsl` and installs the locked PySpark, Delta, and PyYAML versions.
+
+## Run
+
+Run the standard checks and pipeline from PowerShell:
+
+```powershell
+wsl bash -lc "cd /mnt/c/Users/goahe/Desktop/ID2221/Week1 && PYTHONPATH=src .venv-wsl/bin/python -m unittest discover -s tests"
+wsl bash -lc "cd /mnt/c/Users/goahe/Desktop/ID2221/Week1 && bash scripts/run_wsl.sh ingest --dataset all"
+wsl bash -lc "cd /mnt/c/Users/goahe/Desktop/ID2221/Week1 && PYTHONPATH=src .venv-wsl/bin/python scripts/verify_ingestion.py"
+wsl bash -lc "cd /mnt/c/Users/goahe/Desktop/ID2221/Week1 && bash scripts/run_wsl.sh integrate"
+wsl bash -lc "cd /mnt/c/Users/goahe/Desktop/ID2221/Week1 && PYTHONPATH=src .venv-wsl/bin/python scripts/verify_integration.py"
+wsl bash -lc "cd /mnt/c/Users/goahe/Desktop/ID2221/Week1 && bash scripts/run_wsl.sh benchmark"
+```
+
+Ingestion is idempotent for an unchanged source hash and schema version. `--force` rebuilds a selected dataset deliberately. The benchmark command materializes two comparison tables and runs one warmup plus three measured executions per query.
+
+Optional source profiling, using a host Python with pandas and PyArrow:
 
 ```powershell
 python scripts/profile_data.py
 ```
 
-Spark + Delta（在 WSL 中，需先执行一次 `bash scripts/bootstrap_wsl.sh`）：
+## Outputs
 
-```powershell
-wsl bash -lc "cd /mnt/c/Users/goahe/Desktop/ID2221/Week1 && bash scripts/run_wsl.sh ingest --dataset taxi_2024_01"
-wsl bash -lc "cd /mnt/c/Users/goahe/Desktop/ID2221/Week1 && .venv-wsl/bin/python scripts/smoke_delta.py"
-```
+- `lakehouse/bronze/`: raw-value Delta tables with source, hash, run ID, and schema lineage
+- `lakehouse/silver/`: standardized taxi, zone, weather, and PM2.5 tables
+- `lakehouse/quarantine/`: rejected records and reasons
+- `lakehouse/gold/integrated_taxi_trips/`: integrated one-row-per-trip table
+- `lakehouse/metadata/ingestion_runs/`: execution statistics and lineage
+- `lakehouse/benchmark/`: unpartitioned and month-partitioned comparison tables
+- `artifacts/`: machine-readable profile, ingestion, integration, benchmark, and plan evidence
 
-成功摄取后会写入 `lakehouse/bronze/`、`lakehouse/silver/`、`lakehouse/quarantine/` 与 `lakehouse/metadata/ingestion_runs/`。
+## Documentation
 
-`.gitignore` 已配置为忽略大型数据文件、Delta 运行目录和 Python/Spark 缓存，同时允许跟踪 `datasets/SHA256SUMS.txt`。
+- [Design report](docs/design_report.md)
+- [Benchmark report](docs/benchmark_report.md)
+- [Assignment translation and implementation details](docs/assignment_and_implementation.md)
+- [Machine-readable data profile](artifacts/data_profile.json)
+- [Task plan](task_plan.md)
+- [Findings](findings.md)
+- [Progress](progress.md)
 
-## 文档入口
-
-- [Assignment、数据目录与实现方案](docs/assignment_and_implementation.md)
-- [机器可读数据画像](artifacts/data_profile.json)
-- [任务计划](task_plan.md)
-- [研究发现](findings.md)
-- [进度记录](progress.md)
-
-## 实现顺序
-
-1. ~~确认课程要求的 Java、Spark、Delta Lake 和 Python 版本，建立隔离环境并通过 Spark/Delta 写读冒烟测试~~（WSL：JDK 17、PySpark 3.5.7、delta-spark 3.3.2）。
-2. ~~建立最小 PySpark 项目，让一个出租车月份完成 Bronze → Silver Delta 的端到端流程~~（已完成 `taxi_2024_01`）。
-3. 抽取通用摄取路径，再接入区域、天气和空气质量数据。
-4. 构建一行一行程的 `integrated_taxi_trips`，逐步验证连接前后行数不膨胀。
-5. 比较未分区与按 `pickup_month` 分区两种策略，运行指定三条查询并记录实际指标。
-6. 根据实测结果完成设计报告、架构图、基准报告和最终 README。
-
-计划中的 CLI 与验收标准见实现文档。未实现的命令不会在这里写成可运行命令。
+The sibling `C:/Users/goahe/Desktop/ID2221/datasets` directory is a retained mirror. This project does not read, modify, delete, or synchronize it.
