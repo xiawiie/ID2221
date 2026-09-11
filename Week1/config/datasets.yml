@@ -1,0 +1,66 @@
+schema_version: "1"
+
+datasets:
+  taxi_2024_01:
+    kind: taxi_trips
+    logical_name: taxi_trips
+    path: datasets/yellow_tripdata_2024-01.parquet
+    format: parquet
+    file_month: "2024-01"
+    expected_rows: 2964624
+    bronze_path: bronze/taxi_trips/yellow_tripdata_2024-01
+    silver_path: silver/taxi_trips
+    quarantine_path: quarantine/taxi_trips
+
+  taxi_2024_02:
+    kind: taxi_trips
+    logical_name: taxi_trips
+    path: datasets/yellow_tripdata_2024-02.parquet
+    format: parquet
+    file_month: "2024-02"
+    expected_rows: 3007526
+    bronze_path: bronze/taxi_trips/yellow_tripdata_2024-02
+    silver_path: silver/taxi_trips
+    quarantine_path: quarantine/taxi_trips
+
+  taxi_2024_03:
+    kind: taxi_trips
+    logical_name: taxi_trips
+    path: datasets/yellow_tripdata_2024-03.parquet
+    format: parquet
+    file_month: "2024-03"
+    expected_rows: 3582628
+    bronze_path: bronze/taxi_trips/yellow_tripdata_2024-03
+    silver_path: silver/taxi_trips
+    quarantine_path: quarantine/taxi_trips
+
+  taxi_zones:
+    kind: taxi_zones
+    logical_name: taxi_zones
+    path: datasets/taxi_zone_lookup.csv
+    format: csv
+    expected_rows: 265
+    bronze_path: bronze/taxi_zones
+    silver_path: silver/taxi_zones
+    quarantine_path: quarantine/taxi_zones
+
+  weather:
+    kind: weather_hourly
+    logical_name: weather_hourly
+    path: datasets/weather.csv
+    format: csv
+    expected_rows: 8784
+    bronze_path: bronze/weather_hourly
+    silver_path: silver/weather_hourly
+    quarantine_path: quarantine/weather_hourly
+
+  air_quality_nyc:
+    kind: air_quality_hourly_nyc
+    logical_name: air_quality_hourly_nyc
+    path: datasets/hourly_88101_2024.csv
+    format: csv
+    expected_bronze_rows: 51885
+    expected_silver_rows: 8784
+    bronze_path: bronze/air_quality_hourly_nyc
+    silver_path: silver/air_quality_hourly_nyc
+    quarantine_path: quarantine/air_quality_hourly_nyc

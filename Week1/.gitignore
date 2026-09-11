@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+.venv/
+.venv-wsl/
+.pytest_cache/
+.cache/
+.sparkStaging/
+lakehouse/
+metastore_db/
+spark-warehouse/
+derby.log
+
+datasets/*
+!datasets/SHA256SUMS.txt
