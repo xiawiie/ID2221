@@ -1,0 +1,103 @@
+{
+  "status": "success",
+  "generated_at_utc": "2026-09-12T08:47:38.506790+00:00",
+  "input": [
+    "datasets/yellow_tripdata_2024-01.parquet",
+    "datasets/yellow_tripdata_2024-02.parquet",
+    "datasets/yellow_tripdata_2024-03.parquet"
+  ],
+  "input_rows": 9551977,
+  "write_time_definition": "read configured taxi Parquet source files, apply Silver acceptance transforms, and commit the benchmark Delta layout",
+  "compression": "snappy",
+  "hot_query_protocol": "1 warmup + 3 measured runs; median reported",
+  "strategies": {
+    "unpartitioned": {
+      "write_seconds": 18.453,
+      "rows": 9551977,
+      "data_file_count": 10,
+      "data_bytes": 854532220,
+      "average_data_file_bytes": 85453222,
+      "delta_total_bytes": 854532220
+    },
+    "pickup_month_partitioned": {
+      "write_seconds": 17.344,
+      "rows": 9551977,
+      "data_file_count": 23,
+      "data_bytes": 859682610,
+      "average_data_file_bytes": 37377505,
+      "delta_total_bytes": 859682610
+    }
+  },
+  "queries": {
+    "unpartitioned": {
+      "trips_per_borough": {
+        "warmup_ms": 598.835,
+        "hot_run_ms": [
+          636.905,
+          527.601,
+          520.017
+        ],
+        "median_ms": 527.601,
+        "result_rows": 8,
+        "result_sha256": "0a80637ea2de7c258a90d5ed075a8eca4de38df0247f1a12dae49183068d2476"
+      },
+      "average_trip_duration_per_day": {
+        "warmup_ms": 611.273,
+        "hot_run_ms": [
+          501.779,
+          464.285,
+          491.303
+        ],
+        "median_ms": 491.303,
+        "result_rows": 96,
+        "result_sha256": "e03e68b7aba7885a46fd92138f6dce81e1d43ab2a0fa0ece0480e7241398800b"
+      },
+      "average_fare_per_borough": {
+        "warmup_ms": 403.606,
+        "hot_run_ms": [
+          541.357,
+          539.199,
+          521.96
+        ],
+        "median_ms": 539.199,
+        "result_rows": 8,
+        "result_sha256": "66f8785b9993319ac7c6d767f1cf54d6a21859875617f51af17cf8258e227901"
+      }
+    },
+    "pickup_month_partitioned": {
+      "trips_per_borough": {
+        "warmup_ms": 426.706,
+        "hot_run_ms": [
+          634.708,
+          558.957,
+          521.4
+        ],
+        "median_ms": 558.957,
+        "result_rows": 8,
+        "result_sha256": "0a80637ea2de7c258a90d5ed075a8eca4de38df0247f1a12dae49183068d2476"
+      },
+      "average_trip_duration_per_day": {
+        "warmup_ms": 480.232,
+        "hot_run_ms": [
+          505.72,
+          522.756,
+          463.131
+        ],
+        "median_ms": 505.72,
+        "result_rows": 96,
+        "result_sha256": "e03e68b7aba7885a46fd92138f6dce81e1d43ab2a0fa0ece0480e7241398800b"
+      },
+      "average_fare_per_borough": {
+        "warmup_ms": 446.155,
+        "hot_run_ms": [
+          507.799,
+          509.505,
+          513.446
+        ],
+        "median_ms": 509.505,
+        "result_rows": 8,
+        "result_sha256": "66f8785b9993319ac7c6d767f1cf54d6a21859875617f51af17cf8258e227901"
+      }
+    }
+  }
+}
