@@ -1,0 +1,130 @@
+{
+  "status": "success",
+  "generated_at_utc": "2026-09-17T15:23:46.609115+00:00",
+  "protocol": "1 warmup + 3 measured runs; median reported",
+  "experiments": {
+    "caching": {
+      "baseline": {
+        "warmup_ms": 2944.272,
+        "hot_run_ms": [
+          896.075,
+          832.009,
+          864.098
+        ],
+        "median_ms": 864.098,
+        "result_rows": 790,
+        "result_sha256": "b8937f21538036cf4dfefedfda7c1a39e2b5ed55a26bde83c37705a34be415c0"
+      },
+      "optimized": {
+        "warmup_ms": 858.906,
+        "hot_run_ms": [
+          659.417,
+          684.214,
+          756.467
+        ],
+        "median_ms": 684.214,
+        "result_rows": 790,
+        "result_sha256": "b8937f21538036cf4dfefedfda7c1a39e2b5ed55a26bde83c37705a34be415c0"
+      },
+      "result_match": true,
+      "speedup": 1.2629,
+      "cache_fill_ms": 2285.727
+    },
+    "partition_pruning": {
+      "baseline": {
+        "warmup_ms": 649.348,
+        "hot_run_ms": [
+          351.126,
+          338.762,
+          323.477
+        ],
+        "median_ms": 338.762,
+        "result_rows": 8,
+        "result_sha256": "f187b4904948039a5fdd42b9cb91c118909f2fa7e9ef860249d528809e37f922"
+      },
+      "optimized": {
+        "warmup_ms": 313.831,
+        "hot_run_ms": [
+          306.228,
+          347.847,
+          356.783
+        ],
+        "median_ms": 347.847,
+        "result_rows": 8,
+        "result_sha256": "f187b4904948039a5fdd42b9cb91c118909f2fa7e9ef860249d528809e37f922"
+      },
+      "result_match": true,
+      "speedup": 0.9739
+    },
+    "broadcast_join": {
+      "baseline": {
+        "warmup_ms": 2264.766,
+        "hot_run_ms": [
+          1316.027,
+          1209.778,
+          1240.648
+        ],
+        "median_ms": 1240.648,
+        "result_rows": 8,
+        "result_sha256": "fd2e2ffc1705468f48d183c5ec6faa27ab3a41f37811470f256bbcacacb76356"
+      },
+      "optimized": {
+        "warmup_ms": 736.68,
+        "hot_run_ms": [
+          470.912,
+          489.555,
+          487.026
+        ],
+        "median_ms": 487.026,
+        "result_rows": 8,
+        "result_sha256": "fd2e2ffc1705468f48d183c5ec6faa27ab3a41f37811470f256bbcacacb76356"
+      },
+      "result_match": true,
+      "speedup": 2.5474
+    },
+    "adaptive_query_execution": {
+      "baseline": {
+        "warmup_ms": 1364.522,
+        "hot_run_ms": [
+          686.312,
+          725.674,
+          745.857
+        ],
+        "median_ms": 725.674,
+        "result_rows": 257,
+        "result_sha256": "0d587f903b0b53c6a4154097a3ac7838e25ea3cf9670b4cca64e09611c955810"
+      },
+      "optimized": {
+        "warmup_ms": 738.168,
+        "hot_run_ms": [
+          608.03,
+          663.282,
+          637.088
+        ],
+        "median_ms": 637.088,
+        "result_rows": 257,
+        "result_sha256": "0d587f903b0b53c6a4154097a3ac7838e25ea3cf9670b4cca64e09611c955810"
+      },
+      "result_match": true,
+      "speedup": 1.139
+    }
+  },
+  "analytical_product_storage": {
+    "daily_mobility_summary": {
+      "data_file_count": 8,
+      "data_bytes": 56053
+    },
+    "taxi_zone_monthly_statistics": {
+      "data_file_count": 8,
+      "data_bytes": 67876
+    },
+    "weather_impact_summary": {
+      "data_file_count": 8,
+      "data_bytes": 34278
+    },
+    "air_quality_impact_summary": {
+      "data_file_count": 4,
+      "data_bytes": 19858
+    }
+  }
+}

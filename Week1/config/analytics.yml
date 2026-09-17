@@ -1,0 +1,11 @@
+schema_version: "1"
+
+products:
+  daily_mobility_summary:
+    partition_columns: [pickup_month]
+  taxi_zone_monthly_statistics:
+    partition_columns: [pickup_month]
+  weather_impact_summary:
+    partition_columns: [pickup_month]
+  air_quality_impact_summary:
+    partition_columns: [pickup_month]

@@ -9,7 +9,12 @@ from pyspark.sql.window import Window
 
 def file_sha256(path) -> str:
     with open(path, "rb") as handle:
-        return hashlib.file_digest(handle, "sha256").hexdigest()
+        if hasattr(hashlib, "file_digest"):
+            return hashlib.file_digest(handle, "sha256").hexdigest()
+        digest = hashlib.sha256()
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+        return digest.hexdigest()
 
 
 def new_run_id() -> str:
