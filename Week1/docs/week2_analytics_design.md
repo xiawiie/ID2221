@@ -51,3 +51,27 @@ The benchmark also records the Delta storage size and number of data files for
 any materialized products that have been refreshed. Actual timing and storage
 figures belong in the benchmark report only after an execution with the course
 dataset and the documented Spark environment.
+
+## Task 5 Platform Evaluation
+
+`benchmark-analytics` now benchmarks all six required analytical queries in
+addition to the four technique experiments. Each analytical query records:
+
+- baseline execution time and `EXPLAIN FORMATTED` plan,
+- an optimized execution using one assigned technique,
+- result-row SHA-256 equivalence,
+- median latency speedup.
+
+| Query | Assigned optimization |
+| --- | --- |
+| `monthly_taxi_demand_by_zone` | Narrow projection cache |
+| `average_trip_distance_by_weather` | Adaptive Query Execution |
+| `air_quality_taxi_demand_relationship` | Adaptive Query Execution |
+| `zone_weather_demand_variation` | Adaptive Query Execution |
+| `peak_travel_hours_by_day_of_week` | Cache pickup timestamp column |
+| `monthly_taxi_demand_trends` | Direct `source_file_month` partition filter |
+
+The JSON report adds `analytical_queries` and `platform_evaluation`. The
+latter summarizes the largest and smallest measured speedups, the most
+expensive analytical queries, total analytical-product storage overhead, and
+ten-city scaling recommendations derived from the measured evidence.

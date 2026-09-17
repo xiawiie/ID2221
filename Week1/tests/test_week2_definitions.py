@@ -1,6 +1,7 @@
 import unittest
 
 from urban_data.analytics import ANALYTIC_QUERY_SQL, query_names
+from urban_data.optimization import ANALYTICAL_QUERY_TECHNIQUES
 
 
 class Week2QueryDefinitionTest(unittest.TestCase):
@@ -27,3 +28,14 @@ class Week2QueryDefinitionTest(unittest.TestCase):
 
     def test_monthly_trend_query_uses_lag(self):
         self.assertIn("LAG(taxi_demand)", ANALYTIC_QUERY_SQL["monthly_taxi_demand_trends"])
+
+    def test_each_analytical_query_has_task5_technique(self):
+        self.assertEqual(set(ANALYTICAL_QUERY_TECHNIQUES), set(query_names()))
+        self.assertEqual(
+            ANALYTICAL_QUERY_TECHNIQUES["monthly_taxi_demand_by_zone"],
+            "caching",
+        )
+        self.assertEqual(
+            ANALYTICAL_QUERY_TECHNIQUES["monthly_taxi_demand_trends"],
+            "partition_pruning",
+        )

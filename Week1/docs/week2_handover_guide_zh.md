@@ -16,8 +16,8 @@
 | 四个 Delta 数据产品 | `src/urban_data/products.py` |
 | 优化实验、计时和结果签名验证 | `src/urban_data/optimization.py` |
 | 产品分区和 schema 配置 | `config/analytics.yml` |
-| 最终 benchmark 数据 | `artifacts/week2_optimization_benchmark.json` |
-| `EXPLAIN FORMATTED` 物理计划 | `artifacts/week2_optimization_plans.json` |
+| 最终 benchmark 数据 | `artifacts/week2_optimization_benchmark.json`（含 `analytical_queries` 与 `platform_evaluation`） |
+| `EXPLAIN FORMATTED` 物理计划 | `artifacts/week2_optimization_plans.json`（含 `analytical::*` 与 `technique::*`） |
 | 查询和产品设计说明 | `docs/week2_analytics_design.md` |
 
 ## 最终基准结果
