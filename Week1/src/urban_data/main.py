@@ -2,10 +2,13 @@ import argparse
 import json
 import sys
 
+from urban_data.analytics import query_names, run_analytic_query
 from urban_data.config import load_datasets_config, resolve_dataset
 from urban_data.benchmark import benchmark_taxi_storage
 from urban_data.integrate import integrate_taxi_trips
 from urban_data.ingest import ingest_dataset
+from urban_data.optimization import benchmark_analytical_optimizations
+from urban_data.products import materialize_products, product_names
 from urban_data.spark_session import build_spark
 
 
@@ -38,6 +41,16 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("integrate", help="Build the integrated taxi-trips Gold table")
     sub.add_parser("benchmark", help="Compare two taxi Delta storage strategies")
 
+    query = sub.add_parser("query", help="Run one Week 2 analytical Spark SQL query")
+    query.add_argument("--name", required=True, choices=query_names())
+
+    products = sub.add_parser("products", help="Materialize Week 2 Delta data products")
+    products.add_argument(
+        "--product", default="all", choices=("all", *product_names()),
+        help="Product to refresh, or all products (default)",
+    )
+    sub.add_parser("benchmark-analytics", help="Benchmark Week 2 query optimizations")
+
     args = parser.parse_args(argv)
     if args.command == "ingest":
         results = []
@@ -63,6 +76,33 @@ def main(argv: list[str] | None = None) -> int:
         spark = build_spark(app_name="urban-data-benchmark")
         try:
             print(json.dumps(benchmark_taxi_storage(spark), default=str, indent=2, sort_keys=True))
+        finally:
+            spark.stop()
+        return 0
+
+    if args.command == "query":
+        spark = build_spark(app_name="urban-data-week2-query")
+        try:
+            rows = [row.asDict(recursive=True) for row in run_analytic_query(spark, args.name).collect()]
+            print(json.dumps(rows, default=str, indent=2, sort_keys=True))
+        finally:
+            spark.stop()
+        return 0
+
+    if args.command == "products":
+        spark = build_spark(app_name="urban-data-week2-products")
+        try:
+            results = materialize_products(spark, args.product)
+            print(json.dumps(results, default=str, indent=2, sort_keys=True))
+        finally:
+            spark.stop()
+        return 0
+
+    if args.command == "benchmark-analytics":
+        spark = build_spark(app_name="urban-data-week2-benchmark")
+        try:
+            report = benchmark_analytical_optimizations(spark)
+            print(json.dumps(report, default=str, indent=2, sort_keys=True))
         finally:
             spark.stop()
         return 0

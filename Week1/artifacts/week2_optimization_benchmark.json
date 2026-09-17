@@ -1,0 +1,354 @@
+{
+  "status": "success",
+  "generated_at_utc": "2026-09-17T20:15:05.506151+00:00",
+  "protocol": "1 warmup + 3 measured runs; median reported",
+  "analytical_queries": {
+    "monthly_taxi_demand_by_zone": {
+      "optimization_technique": "caching",
+      "baseline": {
+        "warmup_ms": 1493.083,
+        "hot_run_ms": [
+          584.792,
+          622.627,
+          567.974
+        ],
+        "median_ms": 584.792,
+        "result_rows": 790,
+        "result_sha256": "b8937f21538036cf4dfefedfda7c1a39e2b5ed55a26bde83c37705a34be415c0"
+      },
+      "optimized": {
+        "warmup_ms": 657.778,
+        "hot_run_ms": [
+          522.839,
+          545.559,
+          520.125
+        ],
+        "median_ms": 522.839,
+        "result_rows": 790,
+        "result_sha256": "b8937f21538036cf4dfefedfda7c1a39e2b5ed55a26bde83c37705a34be415c0"
+      },
+      "result_match": true,
+      "speedup": 1.1185,
+      "cache_fill_ms": 1326.302
+    },
+    "average_trip_distance_by_weather": {
+      "optimization_technique": "adaptive_query_execution",
+      "baseline": {
+        "warmup_ms": 669.395,
+        "hot_run_ms": [
+          365.912,
+          415.208,
+          355.301
+        ],
+        "median_ms": 365.912,
+        "result_rows": 15,
+        "result_sha256": "cdb9d824870d8db1a618c4ab1c74fb06821cd751548beff2a3b6a373d9b2c4ec"
+      },
+      "optimized": {
+        "warmup_ms": 389.784,
+        "hot_run_ms": [
+          373.784,
+          373.552,
+          373.552
+        ],
+        "median_ms": 373.552,
+        "result_rows": 15,
+        "result_sha256": "cdb9d824870d8db1a618c4ab1c74fb06821cd751548beff2a3b6a373d9b2c4ec"
+      },
+      "result_match": true,
+      "speedup": 0.9795
+    },
+    "air_quality_taxi_demand_relationship": {
+      "optimization_technique": "adaptive_query_execution",
+      "baseline": {
+        "warmup_ms": 949.202,
+        "hot_run_ms": [
+          563.335,
+          519.648,
+          520.988
+        ],
+        "median_ms": 520.988,
+        "result_rows": 4,
+        "result_sha256": "a2f500e2418e6338213b9d660cd61fc8e4b4720fbf7090cd1c7707d76617483f"
+      },
+      "optimized": {
+        "warmup_ms": 481.857,
+        "hot_run_ms": [
+          466.499,
+          491.72,
+          459.46
+        ],
+        "median_ms": 466.499,
+        "result_rows": 4,
+        "result_sha256": "a2f500e2418e6338213b9d660cd61fc8e4b4720fbf7090cd1c7707d76617483f"
+      },
+      "result_match": true,
+      "speedup": 1.1168
+    },
+    "zone_weather_demand_variation": {
+      "optimization_technique": "adaptive_query_execution",
+      "baseline": {
+        "warmup_ms": 1100.229,
+        "hot_run_ms": [
+          786.945,
+          792.564,
+          737.297
+        ],
+        "median_ms": 786.945,
+        "result_rows": 261,
+        "result_sha256": "36abb8bedbddb8ef39f9fd16917b2e0ad93029fe40cc8d3baf48275453657ffa"
+      },
+      "optimized": {
+        "warmup_ms": 679.179,
+        "hot_run_ms": [
+          603.558,
+          599.734,
+          606.15
+        ],
+        "median_ms": 603.558,
+        "result_rows": 261,
+        "result_sha256": "36abb8bedbddb8ef39f9fd16917b2e0ad93029fe40cc8d3baf48275453657ffa"
+      },
+      "result_match": true,
+      "speedup": 1.3038
+    },
+    "peak_travel_hours_by_day_of_week": {
+      "optimization_technique": "caching",
+      "baseline": {
+        "warmup_ms": 1022.469,
+        "hot_run_ms": [
+          727.003,
+          686.641,
+          684.38
+        ],
+        "median_ms": 686.641,
+        "result_rows": 7,
+        "result_sha256": "57bb348cc4a2ea3d9b59b436d07108a6f7e23df9a003086a9f0fc76cf489a62d"
+      },
+      "optimized": {
+        "warmup_ms": 638.056,
+        "hot_run_ms": [
+          558.118,
+          576.629,
+          533.632
+        ],
+        "median_ms": 558.118,
+        "result_rows": 7,
+        "result_sha256": "57bb348cc4a2ea3d9b59b436d07108a6f7e23df9a003086a9f0fc76cf489a62d"
+      },
+      "result_match": true,
+      "speedup": 1.2303,
+      "cache_fill_ms": 807.665
+    },
+    "monthly_taxi_demand_trends": {
+      "optimization_technique": "partition_pruning",
+      "baseline": {
+        "warmup_ms": 390.416,
+        "hot_run_ms": [
+          292.446,
+          284.172,
+          274.319
+        ],
+        "median_ms": 284.172,
+        "result_rows": 8,
+        "result_sha256": "51b86ed1835634507bcba771b7ea387711abe3d893a66becdbbb9414f4cd0b5b"
+      },
+      "optimized": {
+        "warmup_ms": 266.495,
+        "hot_run_ms": [
+          250.759,
+          265.962,
+          256.862
+        ],
+        "median_ms": 256.862,
+        "result_rows": 8,
+        "result_sha256": "51b86ed1835634507bcba771b7ea387711abe3d893a66becdbbb9414f4cd0b5b"
+      },
+      "result_match": true,
+      "speedup": 1.1063
+    }
+  },
+  "experiments": {
+    "caching": {
+      "baseline": {
+        "warmup_ms": 671.085,
+        "hot_run_ms": [
+          511.844,
+          515.678,
+          592.659
+        ],
+        "median_ms": 515.678,
+        "result_rows": 790,
+        "result_sha256": "b8937f21538036cf4dfefedfda7c1a39e2b5ed55a26bde83c37705a34be415c0"
+      },
+      "optimized": {
+        "warmup_ms": 605.531,
+        "hot_run_ms": [
+          477.535,
+          507.968,
+          504.978
+        ],
+        "median_ms": 504.978,
+        "result_rows": 790,
+        "result_sha256": "b8937f21538036cf4dfefedfda7c1a39e2b5ed55a26bde83c37705a34be415c0"
+      },
+      "result_match": true,
+      "speedup": 1.0212,
+      "cache_fill_ms": 1102.221
+    },
+    "partition_pruning": {
+      "baseline": {
+        "warmup_ms": 322.464,
+        "hot_run_ms": [
+          222.327,
+          243.721,
+          234.067
+        ],
+        "median_ms": 234.067,
+        "result_rows": 8,
+        "result_sha256": "f187b4904948039a5fdd42b9cb91c118909f2fa7e9ef860249d528809e37f922"
+      },
+      "optimized": {
+        "warmup_ms": 236.022,
+        "hot_run_ms": [
+          220.847,
+          237.023,
+          241.799
+        ],
+        "median_ms": 237.023,
+        "result_rows": 8,
+        "result_sha256": "f187b4904948039a5fdd42b9cb91c118909f2fa7e9ef860249d528809e37f922"
+      },
+      "result_match": true,
+      "speedup": 0.9875
+    },
+    "broadcast_join": {
+      "baseline": {
+        "warmup_ms": 1336.747,
+        "hot_run_ms": [
+          973.602,
+          878.379,
+          885.486
+        ],
+        "median_ms": 885.486,
+        "result_rows": 8,
+        "result_sha256": "fd2e2ffc1705468f48d183c5ec6faa27ab3a41f37811470f256bbcacacb76356"
+      },
+      "optimized": {
+        "warmup_ms": 575.756,
+        "hot_run_ms": [
+          415.084,
+          409.706,
+          357.065
+        ],
+        "median_ms": 409.706,
+        "result_rows": 8,
+        "result_sha256": "fd2e2ffc1705468f48d183c5ec6faa27ab3a41f37811470f256bbcacacb76356"
+      },
+      "result_match": true,
+      "speedup": 2.1613
+    },
+    "adaptive_query_execution": {
+      "baseline": {
+        "warmup_ms": 840.592,
+        "hot_run_ms": [
+          598.938,
+          531.089,
+          524.89
+        ],
+        "median_ms": 531.089,
+        "result_rows": 257,
+        "result_sha256": "0d587f903b0b53c6a4154097a3ac7838e25ea3cf9670b4cca64e09611c955810"
+      },
+      "optimized": {
+        "warmup_ms": 497.745,
+        "hot_run_ms": [
+          457.22,
+          448.502,
+          487.71
+        ],
+        "median_ms": 457.22,
+        "result_rows": 257,
+        "result_sha256": "0d587f903b0b53c6a4154097a3ac7838e25ea3cf9670b4cca64e09611c955810"
+      },
+      "result_match": true,
+      "speedup": 1.1616
+    }
+  },
+  "platform_evaluation": {
+    "largest_improvement": {
+      "scope": "technique_experiment",
+      "name": "broadcast_join",
+      "speedup": 2.1613
+    },
+    "smallest_improvement": {
+      "scope": "analytical_query",
+      "name": "average_trip_distance_by_weather",
+      "speedup": 0.9795
+    },
+    "most_expensive_analytical_queries": [
+      {
+        "query_name": "zone_weather_demand_variation",
+        "optimization_technique": "adaptive_query_execution",
+        "baseline_median_ms": 786.945,
+        "optimized_median_ms": 603.558
+      },
+      {
+        "query_name": "peak_travel_hours_by_day_of_week",
+        "optimization_technique": "caching",
+        "baseline_median_ms": 686.641,
+        "optimized_median_ms": 558.118
+      },
+      {
+        "query_name": "monthly_taxi_demand_by_zone",
+        "optimization_technique": "caching",
+        "baseline_median_ms": 584.792,
+        "optimized_median_ms": 522.839
+      },
+      {
+        "query_name": "air_quality_taxi_demand_relationship",
+        "optimization_technique": "adaptive_query_execution",
+        "baseline_median_ms": 520.988,
+        "optimized_median_ms": 466.499
+      },
+      {
+        "query_name": "average_trip_distance_by_weather",
+        "optimization_technique": "adaptive_query_execution",
+        "baseline_median_ms": 365.912,
+        "optimized_median_ms": 373.552
+      },
+      {
+        "query_name": "monthly_taxi_demand_trends",
+        "optimization_technique": "partition_pruning",
+        "baseline_median_ms": 284.172,
+        "optimized_median_ms": 256.862
+      }
+    ],
+    "analytical_product_storage_total_bytes": 178070,
+    "ten_city_recommendations": [
+      "Partition by city and stable month keys before data volume makes pruning mandatory.",
+      "Materialize city-level analytical products and refresh them incrementally instead of scanning global Gold tables.",
+      "Keep small reference tables broadcastable per city and avoid cross-city shuffle joins.",
+      "Re-run the same benchmark protocol per city after scaling; do not assume one-city tuning transfers globally.",
+      "Scale driver and executor memory with city count and enforce Delta file compaction targets."
+    ]
+  },
+  "analytical_product_storage": {
+    "daily_mobility_summary": {
+      "data_file_count": 8,
+      "data_bytes": 56058
+    },
+    "taxi_zone_monthly_statistics": {
+      "data_file_count": 8,
+      "data_bytes": 67876
+    },
+    "weather_impact_summary": {
+      "data_file_count": 8,
+      "data_bytes": 34278
+    },
+    "air_quality_impact_summary": {
+      "data_file_count": 4,
+      "data_bytes": 19858
+    }
+  }
+}
