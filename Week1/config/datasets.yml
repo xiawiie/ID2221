@@ -64,3 +64,37 @@ datasets:
     bronze_path: bronze/air_quality_hourly_nyc
     silver_path: silver/air_quality_hourly_nyc
     quarantine_path: quarantine/air_quality_hourly_nyc
+
+  taxi_trips_update:
+    kind: taxi_trips
+    logical_name: taxi_trips
+    mode: incremental
+    path: datasets/updates/taxi_trips_update.parquet
+    format: parquet
+    file_month: "2024-04"
+    schema_version: "2"
+    bronze_path: bronze/taxi_trips/incremental_2024-04
+    silver_path: silver/taxi_trips
+    quarantine_path: quarantine/taxi_trips
+
+  weather_update:
+    kind: weather_hourly
+    logical_name: weather_hourly
+    mode: incremental
+    path: datasets/updates/weather_update.csv
+    format: csv
+    schema_version: "2"
+    bronze_path: bronze/weather_hourly
+    silver_path: silver/weather_hourly
+    quarantine_path: quarantine/weather_hourly
+
+  air_quality_update:
+    kind: air_quality_hourly_nyc
+    logical_name: air_quality_hourly_nyc
+    mode: incremental
+    path: datasets/updates/air_quality_update.csv
+    format: csv
+    schema_version: "2"
+    bronze_path: bronze/air_quality_hourly_nyc
+    silver_path: silver/air_quality_hourly_nyc
+    quarantine_path: quarantine/air_quality_hourly_nyc

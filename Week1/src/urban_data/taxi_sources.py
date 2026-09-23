@@ -29,8 +29,8 @@ def load_accepted_taxi_trips_from_sources(spark: SparkSession) -> tuple[DataFram
             schema_version=cfg["schema_version"],
             ingested_at=utc_now(),
         )
-        accepted, _quarantined = split_taxi_quality(prepared, cfg["file_month"])
-        frames.append(accepted)
+        outcome = split_taxi_quality(prepared, cfg["file_month"])
+        frames.append(outcome.accepted)
         source_files.append(rel_source)
 
     combined = frames[0]

@@ -19,7 +19,9 @@ class ConfigTest(unittest.TestCase):
 
 
     def test_all_dataset_sources_exist(self):
-        for key in load_datasets_config():
+        for key, dataset in load_datasets_config().items():
+            if dataset.get("mode") == "incremental":
+                continue
             cfg = resolve_dataset(key)
             self.assertTrue(cfg["source_path"].is_file(), key)
 

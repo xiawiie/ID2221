@@ -104,24 +104,78 @@ After the Week 1 `integrate` command has built Gold data, run any of the six ana
 ```
 
 `query` accepts `monthly_taxi_demand_by_zone`, `average_trip_distance_by_weather`, `air_quality_taxi_demand_relationship`, `zone_weather_demand_variation`, `peak_travel_hours_by_day_of_week`, and `monthly_taxi_demand_trends`. `products` refreshes four Delta data products with source, refresh, and schema metadata. The optimization benchmark takes one warm-up plus three measured runs, verifies result equivalence, and saves timing data plus `EXPLAIN FORMATTED` plans under `artifacts/`.
+
+## Week 3 Operations
+
+Week 3 extends the platform with incremental updates, selective analytical refresh, and operational monitoring. Run these commands after Week 1 ingestion and Week 2 product materialization.
+
+```powershell
+# Task 1: generate incremental update files and manifest
+.\scripts\run_win.ps1 generate-updates
+
+# Task 1: apply incremental Bronze/Silver/Gold updates (idempotent; skips unchanged hashes)
+.\scripts\run_win.ps1 update --dataset all
+
+# Task 2: refresh only analytical products affected by new data
+.\scripts\run_win.ps1 refresh-products --dataset taxi_trips_update
+.\scripts\run_win.ps1 refresh-products --dataset latest
+
+# Task 3: platform monitoring
+.\scripts\run_win.ps1 monitor --report
+.\scripts\run_win.ps1 monitor --query validation_failures_by_dataset
+.\scripts\run_win.ps1 monitor --query longest_processing_by_target
+.\scripts\run_win.ps1 monitor --query rejected_records_by_execution
+.\scripts\run_win.ps1 monitor --query processing_time_trend
+
+# Task 4: validation summary report
+.\scripts\run_win.ps1 validate-report
+
+# Task 5: platform evaluation
+.\scripts\run_win.ps1 evaluate-platform
+```
+
+Use `--force` on `update` only when deliberately re-applying the same update file. Incremental taxi updates append new trips to Silver and Gold without rebuilding the full lakehouse. Product refresh uses partition replace for most products and full-partition recompute where correlation requires it (see `config/analytics.yml`).
+
+Monitoring records every pipeline execution (ingest, incremental, integrate, products, product refresh) into Delta metadata tables. A full JSON report is written to `artifacts/week3_monitoring_report.json` when you run the Python API or redirect CLI output. Design rationale and discussion questions are documented in [Week 3 monitoring design](docs/week3_monitoring_design.md).
+
+The validation framework quarantines invalid rows, records rule-level events, and summarizes quarantine totals via `validate-report`. Rule sets live in `config/validation_rules.yml`; design notes are in [Week 3 validation design](docs/week3_validation_design.md).
+
+Platform evaluation (`evaluate-platform`) measures incremental update time, product refresh time, storage overhead, and validation/monitoring micro-benchmarks. Results are saved to `artifacts/week3_platform_evaluation.json`; see [Week 3 evaluation report](docs/week3_evaluation_report.md).
+
+Week 3 unit tests:
+
+```powershell
+$env:PYTHONPATH = (Join-Path (Get-Location) "src")
+python -m unittest tests.test_week3_task1 tests.test_week3_task2 tests.test_week3_task3 tests.test_week3_task4 tests.test_week3_task5
+```
+
 ## Outputs
 
 - `lakehouse/bronze/`: raw-value Delta tables with source, hash, run ID, and schema lineage
 - `lakehouse/silver/`: standardized taxi, zone, weather, and PM2.5 tables
 - `lakehouse/quarantine/`: rejected records and reasons
 - `lakehouse/gold/integrated_taxi_trips/`: integrated one-row-per-trip table
-- `lakehouse/metadata/ingestion_runs/`: execution statistics and lineage
+- `lakehouse/metadata/ingestion_runs/`: Week 1 ingestion execution statistics and lineage
+- `lakehouse/metadata/pipeline_runs/`: Week 3 unified pipeline monitoring (timing, row counts, schema version, validation failures)
+- `lakehouse/metadata/validation_events/`: optional rule-level validation failure detail per run
+- `datasets/updates/`: generated incremental update files and `manifest.json` (Task 1)
 - `lakehouse/benchmark/`: unpartitioned and month-partitioned comparison tables
 - `lakehouse/products/`: materialized Week 2 analytical Delta products with source, refresh, and schema metadata
 - `artifacts/`: machine-readable profile, ingestion, integration, benchmark, and plan evidence
 - `artifacts/week2_optimization_benchmark.json`: timing, equivalence, and storage-overhead measurements
 - `artifacts/week2_optimization_plans.json`: `EXPLAIN FORMATTED` output for every compared query variant
+- `artifacts/week3_monitoring_report.json`: monitoring summary and four operational SQL query results
+- `artifacts/week3_validation_report.json`: validation rule catalog and quarantine summary
+- `artifacts/week3_platform_evaluation.json`: Task 5 platform evaluation measurements
 
 ## Documentation
 
 - [Local environment setup record](docs/local_environment.md)
 - [Design report](docs/design_report.md)
 - [Benchmark report](docs/benchmark_report.md)
+- [Week 3 monitoring design (Task 3)](docs/week3_monitoring_design.md)
+- [Week 3 validation design (Task 4)](docs/week3_validation_design.md)
+- [Week 3 evaluation report (Task 5)](docs/week3_evaluation_report.md)
 - [Week 2 analytical query and product definitions](config/analytics.yml)
 - [Assignment translation and implementation details](docs/assignment_and_implementation.md)
 - [Machine-readable data profile](artifacts/data_profile.json)

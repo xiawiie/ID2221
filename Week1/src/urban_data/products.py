@@ -11,7 +11,9 @@ import yaml
 from pyspark.sql import functions as F
 
 from urban_data.analytics import register_integrated_view
+from urban_data.monitoring import record_pipeline_run
 from urban_data.paths import LAKEHOUSE, PROJECT_ROOT
+from urban_data.transforms import utc_now
 
 
 PRODUCT_ROOT = LAKEHOUSE / "products"
@@ -129,6 +131,7 @@ def materialize_product(spark: Any, name: str) -> dict:
     created_at = _existing_created_at(spark, output_path)
     refreshed_at = datetime.now(timezone.utc)
     run_id = str(uuid4())
+    started_at = utc_now()
 
     register_integrated_view(spark)
     product = (
@@ -149,10 +152,11 @@ def materialize_product(spark: Any, name: str) -> dict:
         writer = writer.partitionBy(*partition_columns)
     writer.save(str(output_path))
 
-    return {
+    row_count = spark.read.format("delta").load(str(output_path)).count()
+    result = {
         "product_name": name,
         "output_path": str(output_path),
-        "row_count": spark.read.format("delta").load(str(output_path)).count(),
+        "row_count": row_count,
         "partition_columns": partition_columns,
         "source_table": SOURCE_TABLE,
         "created_at_utc": created_at.isoformat(),
@@ -161,6 +165,21 @@ def materialize_product(spark: Any, name: str) -> dict:
         "run_id": run_id,
         **_storage_stats(spark, output_path),
     }
+    record_pipeline_run(
+        spark,
+        run_id=run_id,
+        pipeline_type="products",
+        target_key=name,
+        target_name=name,
+        schema_version=str(config["schema_version"]),
+        rows_processed=row_count,
+        rows_inserted=row_count,
+        rows_rejected=0,
+        started_at=started_at,
+        finished_at=utc_now(),
+        status="success",
+    )
+    return result
 
 
 def materialize_products(spark: Any, name: str = "all") -> list[dict]:

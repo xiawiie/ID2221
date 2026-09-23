@@ -39,7 +39,7 @@ def build_spark(app_name: str = "urban-data") -> SparkSession:
         )
 
     builder = (
-        SparkSession.builder.master("local[8]")
+        SparkSession.builder.master("local[1]")
         .appName(app_name)
         .config("spark.ui.enabled", "false")
         .config("spark.driver.memory", "4g")

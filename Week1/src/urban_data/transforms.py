@@ -1,14 +1,36 @@
 import hashlib
 from datetime import datetime, timezone
+from pathlib import Path
 from uuid import uuid4
 
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 
+from urban_data.validation.engine import (
+    ValidationOutcome,
+    apply_validation_rules,
+    prepare_air_quality_validation,
+)
+
 
 def file_sha256(path) -> str:
-    with open(path, "rb") as handle:
+    path = Path(path)
+    if path.is_dir():
+        digest = hashlib.sha256()
+        for part in sorted(p for p in path.rglob("*") if p.is_file()):
+            with part.open("rb") as handle:
+                if hasattr(hashlib, "file_digest"):
+                    part_hash = hashlib.file_digest(handle, "sha256").hexdigest()
+                else:
+                    part_digest = hashlib.sha256()
+                    for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                        part_digest.update(chunk)
+                    part_hash = part_digest.hexdigest()
+            digest.update(part_hash.encode("ascii"))
+        return digest.hexdigest()
+
+    with path.open("rb") as handle:
         if hasattr(hashlib, "file_digest"):
             return hashlib.file_digest(handle, "sha256").hexdigest()
         digest = hashlib.sha256()
@@ -143,6 +165,79 @@ def taxi_silver_columns(df: DataFrame, file_month: str) -> DataFrame:
     )
 
 
+def taxi_silver_columns_by_pickup_month(df: DataFrame) -> DataFrame:
+    renamed = rename_taxi_columns(df).withColumn(
+        "source_file_month", F.date_format("pickup_ts_local", "yyyy-MM")
+    )
+    month_start = F.to_timestamp(F.concat(F.col("source_file_month"), F.lit("-01")))
+    month_end = F.add_months(month_start, 1)
+    duration_seconds = F.unix_timestamp("dropoff_ts_local") - F.unix_timestamp(
+        "pickup_ts_local"
+    )
+    return (
+        renamed.withColumn(
+            "trip_duration_minutes",
+            (duration_seconds / F.lit(60.0)).cast("double"),
+        )
+        .withColumn("pickup_month", F.col("source_file_month"))
+        .withColumn(
+            "trip_id",
+            F.sha2(
+                F.concat_ws(
+                    "|",
+                    F.col("vendor_id").cast("string"),
+                    F.col("pickup_ts_local").cast("string"),
+                    F.col("dropoff_ts_local").cast("string"),
+                    F.col("pu_location_id").cast("string"),
+                    F.col("do_location_id").cast("string"),
+                    F.col("fare_amount").cast("string"),
+                    F.col("total_amount").cast("string"),
+                ),
+                256,
+            ),
+        )
+        .withColumn(
+            "has_negative_fare",
+            F.col("fare_amount").isNotNull() & (F.col("fare_amount") < 0),
+        )
+        .withColumn(
+            "has_negative_total",
+            F.col("total_amount").isNotNull() & (F.col("total_amount") < 0),
+        )
+        .withColumn(
+            "pickup_outside_file_month",
+            F.col("pickup_ts_local").isNull()
+            | (F.col("pickup_ts_local") < month_start)
+            | (F.col("pickup_ts_local") >= month_end),
+        )
+        .withColumn(
+            "extreme_trip_distance",
+            F.col("trip_distance").isNotNull() & (F.col("trip_distance") > 100),
+        )
+        .withColumn(
+            "quality_flags",
+            F.nullif(
+                F.trim(
+                    F.concat_ws(
+                        ",",
+                        F.when(F.col("has_negative_fare"), F.lit("negative_fare")),
+                        F.when(F.col("has_negative_total"), F.lit("negative_total")),
+                        F.when(
+                            F.col("pickup_outside_file_month"),
+                            F.lit("pickup_outside_file_month"),
+                        ),
+                        F.when(
+                            F.col("extreme_trip_distance"),
+                            F.lit("extreme_trip_distance"),
+                        ),
+                    )
+                ),
+                F.lit(""),
+            ),
+        )
+    )
+
+
 def quarantine_mask(df: DataFrame) -> F.Column:
     return (
         F.col("pickup_ts_local").isNull()
@@ -151,11 +246,31 @@ def quarantine_mask(df: DataFrame) -> F.Column:
     )
 
 
-def split_taxi_quality(df: DataFrame, file_month: str) -> tuple[DataFrame, DataFrame]:
+def split_taxi_quality(
+    df: DataFrame,
+    file_month: str,
+    *,
+    valid_location_ids: list[int] | None = None,
+) -> ValidationOutcome:
     silver = taxi_silver_columns(rename_taxi_columns(df), file_month)
-    bad = silver.filter(quarantine_mask(silver))
-    good = silver.filter(~quarantine_mask(silver))
-    return good, bad
+    return apply_validation_rules(
+        silver,
+        "taxi_trips",
+        context={"file_month": file_month, "valid_location_ids": valid_location_ids},
+    )
+
+
+def split_taxi_quality_incremental(
+    df: DataFrame,
+    *,
+    valid_location_ids: list[int] | None = None,
+) -> ValidationOutcome:
+    silver = taxi_silver_columns_by_pickup_month(df)
+    return apply_validation_rules(
+        silver,
+        "taxi_trips",
+        context={"valid_location_ids": valid_location_ids},
+    )
 
 
 def rename_zone_columns(df: DataFrame) -> DataFrame:
@@ -172,22 +287,17 @@ def rename_zone_columns(df: DataFrame) -> DataFrame:
     )
 
 
-def split_zone_quality(df: DataFrame) -> tuple[DataFrame, DataFrame]:
-    renamed = rename_zone_columns(df).withColumn(
-        "missing_location_id",
-        F.col("location_id").isNull(),
-    ).withColumn(
-        "duplicate_location_id",
-        F.count("*").over(Window.partitionBy("location_id")) > 1,
-    )
-    bad = renamed.filter(F.col("missing_location_id") | F.col("duplicate_location_id"))
-    good = renamed.filter(~F.col("missing_location_id") & ~F.col("duplicate_location_id"))
-    return good.drop("missing_location_id", "duplicate_location_id"), bad.drop(
-        "missing_location_id", "duplicate_location_id"
-    )
+def split_zone_quality(df: DataFrame) -> ValidationOutcome:
+    renamed = rename_zone_columns(df)
+    return apply_validation_rules(renamed, "taxi_zones")
 
 
 def rename_weather_columns(df: DataFrame) -> DataFrame:
+    humidity = (
+        F.col("humidity")
+        if "humidity" in df.columns
+        else F.lit(None).cast("double")
+    )
     return df.select(
         F.col("year"),
         F.col("month"),
@@ -213,6 +323,7 @@ def rename_weather_columns(df: DataFrame) -> DataFrame:
         F.col("cldc_source"),
         F.col("coco"),
         F.col("coco_source"),
+        humidity.alias("humidity"),
         F.col("_source_file"),
         F.col("_source_sha256"),
         F.col("_ingested_at"),
@@ -239,28 +350,9 @@ def weather_silver(df: DataFrame) -> DataFrame:
     )
 
 
-def split_weather_quality(df: DataFrame) -> tuple[DataFrame, DataFrame]:
-    silver = weather_silver(df).withColumn(
-        "observation_ts_count",
-        F.count("*").over(Window.partitionBy("observation_ts_local")),
-    )
-    bad = silver.filter(
-        F.col("year").isNull()
-        | F.col("month").isNull()
-        | F.col("day").isNull()
-        | F.col("hour").isNull()
-        | F.col("observation_ts_local").isNull()
-        | (F.col("observation_ts_count") > 1)
-    )
-    good = silver.filter(
-        F.col("year").isNotNull()
-        & F.col("month").isNotNull()
-        & F.col("day").isNotNull()
-        & F.col("hour").isNotNull()
-        & F.col("observation_ts_local").isNotNull()
-        & (F.col("observation_ts_count") == 1)
-    )
-    return good.drop("observation_ts_count"), bad.drop("observation_ts_count")
+def split_weather_quality(df: DataFrame) -> ValidationOutcome:
+    silver = weather_silver(df)
+    return apply_validation_rules(silver, "weather_hourly")
 
 
 def filter_air_quality_nyc(df: DataFrame) -> DataFrame:
@@ -276,7 +368,7 @@ def filter_air_quality_nyc(df: DataFrame) -> DataFrame:
 
 
 def normalize_air_quality_columns(df: DataFrame) -> DataFrame:
-    return (
+    renamed = (
         df.withColumnRenamed("State Code", "state_code")
         .withColumnRenamed("County Code", "county_code")
         .withColumnRenamed("Site Num", "site_num")
@@ -302,6 +394,9 @@ def normalize_air_quality_columns(df: DataFrame) -> DataFrame:
         .withColumnRenamed("County Name", "county_name")
         .withColumnRenamed("Date of Last Change", "date_of_last_change")
     )
+    if "aqi" in renamed.columns:
+        return renamed
+    return renamed.withColumn("aqi", F.lit(None).cast("double"))
 
 
 def air_station_silver(df: DataFrame) -> DataFrame:
@@ -333,33 +428,33 @@ def candidate_key_counts(rows: list[dict]) -> dict[tuple, int]:
     return counts
 
 
-def split_air_station_quality(df: DataFrame) -> tuple[DataFrame, DataFrame]:
-    silver = air_station_silver(df)
-    key_counts = silver.groupBy(*AIR_CANDIDATE_KEY_COLUMNS).agg(
-        F.count("*").alias("_candidate_key_count")
+def split_air_station_quality(df: DataFrame) -> ValidationOutcome:
+    silver = prepare_air_quality_validation(air_station_silver(df))
+    outcome = apply_validation_rules(silver, "air_quality_hourly_nyc")
+    accepted = outcome.accepted.drop("_candidate_key_count")
+    quarantined = outcome.quarantined.drop("_candidate_key_count")
+    return ValidationOutcome(
+        accepted=accepted,
+        quarantined=quarantined,
+        rule_counts=outcome.rule_counts,
+        dataset_kind=outcome.dataset_kind,
     )
-    silver = silver.join(key_counts, on=list(AIR_CANDIDATE_KEY_COLUMNS), how="left")
-    bad = silver.filter(
-        F.col("observation_ts_utc").isNull()
-        | F.col("pm25").isNull()
-        | (F.col("pm25") < 0)
-        | (F.col("_candidate_key_count") > 1)
-    )
-    good = silver.filter(
-        F.col("observation_ts_utc").isNotNull()
-        & F.col("pm25").isNotNull()
-        & (F.col("pm25") >= 0)
-        & (F.col("_candidate_key_count") == 1)
-    )
-    return good.drop("_candidate_key_count"), bad.drop("_candidate_key_count")
 
 
 def aggregate_air_hourly(stations: DataFrame) -> DataFrame:
-    return stations.groupBy("observation_ts_utc").agg(
+    aggregates = [
         F.expr("percentile_approx(pm25, 0.5)").alias("pm25_median"),
         F.avg("pm25").alias("pm25_mean"),
         F.min("pm25").alias("pm25_min"),
         F.max("pm25").alias("pm25_max"),
         F.count("*").alias("site_observation_count"),
         F.countDistinct("site_key").alias("site_count"),
-    )
+    ]
+    if "aqi" in stations.columns:
+        aggregates.extend(
+            [
+                F.avg("aqi").alias("aqi_mean"),
+                F.max("aqi").alias("aqi_max"),
+            ]
+        )
+    return stations.groupBy("observation_ts_utc").agg(*aggregates)

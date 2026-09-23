@@ -79,6 +79,11 @@ WEATHER_RAW_SCHEMA = StructType(
     ]
 )
 
+WEATHER_UPDATE_RAW_SCHEMA = StructType(
+    list(WEATHER_RAW_SCHEMA.fields)
+    + [StructField("humidity", DoubleType(), True)]
+)
+
 AIR_QUALITY_RAW_SCHEMA = StructType(
     [
         StructField("State Code", StringType(), True),
@@ -108,6 +113,10 @@ AIR_QUALITY_RAW_SCHEMA = StructType(
     ]
 )
 
+AIR_QUALITY_UPDATE_RAW_SCHEMA = StructType(
+    list(AIR_QUALITY_RAW_SCHEMA.fields) + [StructField("aqi", DoubleType(), True)]
+)
+
 INGESTION_RUNS_SCHEMA = StructType(
     [
         StructField("run_id", StringType(), False),
@@ -124,5 +133,36 @@ INGESTION_RUNS_SCHEMA = StructType(
         StructField("finished_at", TimestampType(), False),
         StructField("status", StringType(), False),
         StructField("error_message", StringType(), True),
+    ]
+)
+
+PIPELINE_RUNS_SCHEMA = StructType(
+    [
+        StructField("run_id", StringType(), False),
+        StructField("pipeline_type", StringType(), False),
+        StructField("target_key", StringType(), False),
+        StructField("target_name", StringType(), False),
+        StructField("schema_version", StringType(), False),
+        StructField("rows_processed", LongType(), False),
+        StructField("rows_inserted", LongType(), False),
+        StructField("rows_rejected", LongType(), False),
+        StructField("rows_duplicates_ignored", LongType(), False),
+        StructField("validation_failure_count", LongType(), False),
+        StructField("started_at", TimestampType(), False),
+        StructField("finished_at", TimestampType(), False),
+        StructField("duration_ms", DoubleType(), False),
+        StructField("status", StringType(), False),
+        StructField("error_message", StringType(), True),
+    ]
+)
+
+VALIDATION_EVENTS_SCHEMA = StructType(
+    [
+        StructField("run_id", StringType(), False),
+        StructField("target_key", StringType(), False),
+        StructField("pipeline_type", StringType(), False),
+        StructField("rule_name", StringType(), False),
+        StructField("failure_count", LongType(), False),
+        StructField("recorded_at", TimestampType(), False),
     ]
 )

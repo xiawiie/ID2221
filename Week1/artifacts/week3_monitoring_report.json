@@ -1,0 +1,604 @@
+{
+  "generated_at_utc": "2026-09-23T15:27:21.019118Z",
+  "queries": {
+    "longest_processing_by_target": [
+      {
+        "avg_duration_ms": 145250.0,
+        "execution_count": 4,
+        "max_duration_ms": 425000.0,
+        "pipeline_type": "ingest",
+        "target_key": "taxi_trips_update"
+      },
+      {
+        "avg_duration_ms": 27000.0,
+        "execution_count": 1,
+        "max_duration_ms": 27000.0,
+        "pipeline_type": "ingest",
+        "target_key": "air_quality_nyc"
+      },
+      {
+        "avg_duration_ms": 17000.0,
+        "execution_count": 1,
+        "max_duration_ms": 17000.0,
+        "pipeline_type": "ingest",
+        "target_key": "taxi_2024_03"
+      },
+      {
+        "avg_duration_ms": 16000.0,
+        "execution_count": 1,
+        "max_duration_ms": 16000.0,
+        "pipeline_type": "ingest",
+        "target_key": "taxi_2024_01"
+      },
+      {
+        "avg_duration_ms": 15000.0,
+        "execution_count": 1,
+        "max_duration_ms": 15000.0,
+        "pipeline_type": "ingest",
+        "target_key": "taxi_2024_02"
+      },
+      {
+        "avg_duration_ms": 13500.0,
+        "execution_count": 2,
+        "max_duration_ms": 15000.0,
+        "pipeline_type": "ingest",
+        "target_key": "air_quality_update"
+      },
+      {
+        "avg_duration_ms": 13048.07,
+        "execution_count": 1,
+        "max_duration_ms": 13048.07,
+        "pipeline_type": "product_refresh",
+        "target_key": "air_quality_impact_summary"
+      },
+      {
+        "avg_duration_ms": 8000.0,
+        "execution_count": 1,
+        "max_duration_ms": 8000.0,
+        "pipeline_type": "ingest",
+        "target_key": "weather_update"
+      },
+      {
+        "avg_duration_ms": 6202.33,
+        "execution_count": 1,
+        "max_duration_ms": 6202.33,
+        "pipeline_type": "product_refresh",
+        "target_key": "daily_mobility_summary"
+      },
+      {
+        "avg_duration_ms": 5867.29,
+        "execution_count": 1,
+        "max_duration_ms": 5867.29,
+        "pipeline_type": "product_refresh",
+        "target_key": "taxi_zone_monthly_statistics"
+      },
+      {
+        "avg_duration_ms": 5813.071,
+        "execution_count": 1,
+        "max_duration_ms": 5813.071,
+        "pipeline_type": "product_refresh",
+        "target_key": "weather_impact_summary"
+      },
+      {
+        "avg_duration_ms": 3000.0,
+        "execution_count": 1,
+        "max_duration_ms": 3000.0,
+        "pipeline_type": "ingest",
+        "target_key": "weather"
+      },
+      {
+        "avg_duration_ms": 2000.0,
+        "execution_count": 1,
+        "max_duration_ms": 2000.0,
+        "pipeline_type": "ingest",
+        "target_key": "taxi_zones"
+      }
+    ],
+    "processing_time_trend": [
+      {
+        "duration_ms": 13048.07,
+        "pipeline_type": "product_refresh",
+        "rows_inserted": 127,
+        "rows_processed": 127,
+        "started_at": "2026-09-23 15:26:23.132715",
+        "status": "success",
+        "target_key": "air_quality_impact_summary"
+      },
+      {
+        "duration_ms": 27000.0,
+        "pipeline_type": "ingest",
+        "rows_inserted": 8784,
+        "rows_processed": 51885,
+        "started_at": "2026-09-17 16:45:51.313982",
+        "status": "success",
+        "target_key": "air_quality_nyc"
+      },
+      {
+        "duration_ms": 12000.0,
+        "pipeline_type": "ingest",
+        "rows_inserted": 163,
+        "rows_processed": 2520,
+        "started_at": "2026-09-23 14:26:29.924971",
+        "status": "success",
+        "target_key": "air_quality_update"
+      },
+      {
+        "duration_ms": 0.0,
+        "pipeline_type": "ingest",
+        "rows_inserted": 0,
+        "rows_processed": 0,
+        "started_at": "2026-09-23 14:27:35.649208",
+        "status": "skipped",
+        "target_key": "air_quality_update"
+      },
+      {
+        "duration_ms": 0.0,
+        "pipeline_type": "ingest",
+        "rows_inserted": 0,
+        "rows_processed": 0,
+        "started_at": "2026-09-23 14:28:11.206122",
+        "status": "skipped",
+        "target_key": "air_quality_update"
+      },
+      {
+        "duration_ms": 15000.0,
+        "pipeline_type": "ingest",
+        "rows_inserted": 0,
+        "rows_processed": 2520,
+        "started_at": "2026-09-23 14:33:44.448806",
+        "status": "success",
+        "target_key": "air_quality_update"
+      },
+      {
+        "duration_ms": 0.0,
+        "pipeline_type": "incremental",
+        "rows_inserted": 0,
+        "rows_processed": 0,
+        "started_at": "2026-09-23 15:25:30.596169",
+        "status": "skipped",
+        "target_key": "air_quality_update"
+      },
+      {
+        "duration_ms": 6202.33,
+        "pipeline_type": "product_refresh",
+        "rows_inserted": 956,
+        "rows_processed": 956,
+        "started_at": "2026-09-23 15:26:36.905406",
+        "status": "success",
+        "target_key": "daily_mobility_summary"
+      },
+      {
+        "duration_ms": 16000.0,
+        "pipeline_type": "ingest",
+        "rows_inserted": 2963754,
+        "rows_processed": 2964624,
+        "started_at": "2026-09-17 16:46:21.854829",
+        "status": "success",
+        "target_key": "taxi_2024_01"
+      },
+      {
+        "duration_ms": 15000.0,
+        "pipeline_type": "ingest",
+        "rows_inserted": 3006723,
+        "rows_processed": 3007526,
+        "started_at": "2026-09-17 16:46:39.632833",
+        "status": "success",
+        "target_key": "taxi_2024_02"
+      },
+      {
+        "duration_ms": 17000.0,
+        "pipeline_type": "ingest",
+        "rows_inserted": 3581500,
+        "rows_processed": 3582628,
+        "started_at": "2026-09-17 16:46:57.322896",
+        "status": "success",
+        "target_key": "taxi_2024_03"
+      },
+      {
+        "duration_ms": 48000.0,
+        "pipeline_type": "ingest",
+        "rows_inserted": 0,
+        "rows_processed": 812155,
+        "started_at": "2026-09-23 14:34:00.119171",
+        "status": "success",
+        "target_key": "taxi_trips_update"
+      },
+      {
+        "duration_ms": 54000.0,
+        "pipeline_type": "ingest",
+        "rows_inserted": 0,
+        "rows_processed": 812155,
+        "started_at": "2026-09-23 14:36:22.590893",
+        "status": "success",
+        "target_key": "taxi_trips_update"
+      },
+      {
+        "duration_ms": 54000.0,
+        "pipeline_type": "ingest",
+        "rows_inserted": 0,
+        "rows_processed": 812155,
+        "started_at": "2026-09-23 14:40:14.462314",
+        "status": "success",
+        "target_key": "taxi_trips_update"
+      },
+      {
+        "duration_ms": 425000.0,
+        "pipeline_type": "ingest",
+        "rows_inserted": 668637,
+        "rows_processed": 812155,
+        "started_at": "2026-09-23 14:45:00.602057",
+        "status": "success",
+        "target_key": "taxi_trips_update"
+      },
+      {
+        "duration_ms": 0.0,
+        "pipeline_type": "incremental",
+        "rows_inserted": 0,
+        "rows_processed": 0,
+        "started_at": "2026-09-23 15:25:34.078171",
+        "status": "skipped",
+        "target_key": "taxi_trips_update"
+      },
+      {
+        "duration_ms": 5867.29,
+        "pipeline_type": "product_refresh",
+        "rows_inserted": 1209,
+        "rows_processed": 1209,
+        "started_at": "2026-09-23 15:26:43.775805",
+        "status": "success",
+        "target_key": "taxi_zone_monthly_statistics"
+      },
+      {
+        "duration_ms": 2000.0,
+        "pipeline_type": "ingest",
+        "rows_inserted": 265,
+        "rows_processed": 265,
+        "started_at": "2026-09-17 16:47:17.037425",
+        "status": "success",
+        "target_key": "taxi_zones"
+      },
+      {
+        "duration_ms": 3000.0,
+        "pipeline_type": "ingest",
+        "rows_inserted": 8784,
+        "rows_processed": 8784,
+        "started_at": "2026-09-17 16:47:22.618138",
+        "status": "success",
+        "target_key": "weather"
+      },
+      {
+        "duration_ms": 5813.071,
+        "pipeline_type": "product_refresh",
+        "rows_inserted": 49,
+        "rows_processed": 49,
+        "started_at": "2026-09-23 15:26:50.285470",
+        "status": "success",
+        "target_key": "weather_impact_summary"
+      },
+      {
+        "duration_ms": 8000.0,
+        "pipeline_type": "ingest",
+        "rows_inserted": 168,
+        "rows_processed": 168,
+        "started_at": "2026-09-23 14:34:49.272880",
+        "status": "success",
+        "target_key": "weather_update"
+      },
+      {
+        "duration_ms": 0.0,
+        "pipeline_type": "incremental",
+        "rows_inserted": 0,
+        "rows_processed": 0,
+        "started_at": "2026-09-23 15:25:36.751803",
+        "status": "skipped",
+        "target_key": "weather_update"
+      }
+    ],
+    "rejected_records_by_execution": [
+      {
+        "finished_at": "2026-09-23 15:26:56.098541",
+        "pipeline_type": "product_refresh",
+        "rows_inserted": 49,
+        "rows_processed": 49,
+        "rows_rejected": 0,
+        "run_id": "b02ebd54-84f1-4d7f-85e2-70e24de9c88f",
+        "started_at": "2026-09-23 15:26:50.285470",
+        "target_key": "weather_impact_summary",
+        "validation_failure_count": 0
+      },
+      {
+        "finished_at": "2026-09-23 15:26:49.643095",
+        "pipeline_type": "product_refresh",
+        "rows_inserted": 1209,
+        "rows_processed": 1209,
+        "rows_rejected": 0,
+        "run_id": "08872d64-6f83-4332-982f-866d819a9d67",
+        "started_at": "2026-09-23 15:26:43.775805",
+        "target_key": "taxi_zone_monthly_statistics",
+        "validation_failure_count": 0
+      },
+      {
+        "finished_at": "2026-09-23 15:26:43.107736",
+        "pipeline_type": "product_refresh",
+        "rows_inserted": 956,
+        "rows_processed": 956,
+        "rows_rejected": 0,
+        "run_id": "705f1a7f-a77e-4c70-a49c-54218e898700",
+        "started_at": "2026-09-23 15:26:36.905406",
+        "target_key": "daily_mobility_summary",
+        "validation_failure_count": 0
+      },
+      {
+        "finished_at": "2026-09-23 15:26:36.180785",
+        "pipeline_type": "product_refresh",
+        "rows_inserted": 127,
+        "rows_processed": 127,
+        "rows_rejected": 0,
+        "run_id": "a696ce6a-a0ee-49b5-abed-ac835129e66c",
+        "started_at": "2026-09-23 15:26:23.132715",
+        "target_key": "air_quality_impact_summary",
+        "validation_failure_count": 0
+      },
+      {
+        "finished_at": "2026-09-23 15:25:36.751803",
+        "pipeline_type": "incremental",
+        "rows_inserted": 0,
+        "rows_processed": 0,
+        "rows_rejected": 0,
+        "run_id": "07edc08d0d8945f8b015a0b934f6b4de",
+        "started_at": "2026-09-23 15:25:36.751803",
+        "target_key": "weather_update",
+        "validation_failure_count": 0
+      },
+      {
+        "finished_at": "2026-09-23 15:25:34.078171",
+        "pipeline_type": "incremental",
+        "rows_inserted": 0,
+        "rows_processed": 0,
+        "rows_rejected": 0,
+        "run_id": "c65b7f177edd4101a1f5ecbec5423280",
+        "started_at": "2026-09-23 15:25:34.078171",
+        "target_key": "taxi_trips_update",
+        "validation_failure_count": 0
+      },
+      {
+        "finished_at": "2026-09-23 15:25:30.596169",
+        "pipeline_type": "incremental",
+        "rows_inserted": 0,
+        "rows_processed": 0,
+        "rows_rejected": 0,
+        "run_id": "bd2fe09f6513444e906eda76ec6b1aca",
+        "started_at": "2026-09-23 15:25:30.596169",
+        "target_key": "air_quality_update",
+        "validation_failure_count": 0
+      },
+      {
+        "finished_at": "2026-09-23 14:52:05.069934",
+        "pipeline_type": "ingest",
+        "rows_inserted": 668637,
+        "rows_processed": 812155,
+        "rows_rejected": 253,
+        "run_id": "30659ca2f7264b8081e308d03e26de3f",
+        "started_at": "2026-09-23 14:45:00.602057",
+        "target_key": "taxi_trips_update",
+        "validation_failure_count": 143518
+      },
+      {
+        "finished_at": "2026-09-23 14:41:08.912548",
+        "pipeline_type": "ingest",
+        "rows_inserted": 0,
+        "rows_processed": 812155,
+        "rows_rejected": 668890,
+        "run_id": "38064fad1d6743c7b8f152f17dfe7480",
+        "started_at": "2026-09-23 14:40:14.462314",
+        "target_key": "taxi_trips_update",
+        "validation_failure_count": 812155
+      },
+      {
+        "finished_at": "2026-09-23 14:37:16.563810",
+        "pipeline_type": "ingest",
+        "rows_inserted": 0,
+        "rows_processed": 812155,
+        "rows_rejected": 668890,
+        "run_id": "491275facbbb4781ad50e5385336c76d",
+        "started_at": "2026-09-23 14:36:22.590893",
+        "target_key": "taxi_trips_update",
+        "validation_failure_count": 812155
+      },
+      {
+        "finished_at": "2026-09-23 14:34:57.762947",
+        "pipeline_type": "ingest",
+        "rows_inserted": 168,
+        "rows_processed": 168,
+        "rows_rejected": 0,
+        "run_id": "e2c152db49eb4cf68fcec86d36a3cafd",
+        "started_at": "2026-09-23 14:34:49.272880",
+        "target_key": "weather_update",
+        "validation_failure_count": 0
+      },
+      {
+        "finished_at": "2026-09-23 14:34:48.556307",
+        "pipeline_type": "ingest",
+        "rows_inserted": 0,
+        "rows_processed": 812155,
+        "rows_rejected": 668890,
+        "run_id": "019efc269a684a2e9d63232b1723eae3",
+        "started_at": "2026-09-23 14:34:00.119171",
+        "target_key": "taxi_trips_update",
+        "validation_failure_count": 812155
+      },
+      {
+        "finished_at": "2026-09-23 14:33:59.335119",
+        "pipeline_type": "ingest",
+        "rows_inserted": 0,
+        "rows_processed": 2520,
+        "rows_rejected": 0,
+        "run_id": "1b0f243586144295a564afba5b618a4e",
+        "started_at": "2026-09-23 14:33:44.448806",
+        "target_key": "air_quality_update",
+        "validation_failure_count": 168
+      },
+      {
+        "finished_at": "2026-09-23 14:28:13.641747",
+        "pipeline_type": "ingest",
+        "rows_inserted": 0,
+        "rows_processed": 0,
+        "rows_rejected": 0,
+        "run_id": "85eeef7669b54182a0210c4660714e01",
+        "started_at": "2026-09-23 14:28:13.577419",
+        "target_key": "taxi_trips_update",
+        "validation_failure_count": 0
+      },
+      {
+        "finished_at": "2026-09-23 14:28:11.206122",
+        "pipeline_type": "ingest",
+        "rows_inserted": 0,
+        "rows_processed": 0,
+        "rows_rejected": 0,
+        "run_id": "f3e44835f7474bb28db5aefccb7f32c1",
+        "started_at": "2026-09-23 14:28:11.206122",
+        "target_key": "air_quality_update",
+        "validation_failure_count": 0
+      },
+      {
+        "finished_at": "2026-09-23 14:27:35.649208",
+        "pipeline_type": "ingest",
+        "rows_inserted": 0,
+        "rows_processed": 0,
+        "rows_rejected": 0,
+        "run_id": "1dc9ee037d14451c86d45d1bb269dd88",
+        "started_at": "2026-09-23 14:27:35.649208",
+        "target_key": "air_quality_update",
+        "validation_failure_count": 0
+      },
+      {
+        "finished_at": "2026-09-23 14:26:41.786909",
+        "pipeline_type": "ingest",
+        "rows_inserted": 163,
+        "rows_processed": 2520,
+        "rows_rejected": 0,
+        "run_id": "3cbe37ebecdd49b4a80e8849232d8912",
+        "started_at": "2026-09-23 14:26:29.924971",
+        "target_key": "air_quality_update",
+        "validation_failure_count": 5
+      },
+      {
+        "finished_at": "2026-09-23 14:25:49.617236",
+        "pipeline_type": "ingest",
+        "rows_inserted": 0,
+        "rows_processed": 0,
+        "rows_rejected": 0,
+        "run_id": "068e6c54431e4002a3d41f40a31ccbcd",
+        "started_at": "2026-09-23 14:25:49.446896",
+        "target_key": "air_quality_update",
+        "validation_failure_count": 0
+      },
+      {
+        "finished_at": "2026-09-17 16:47:25.762450",
+        "pipeline_type": "ingest",
+        "rows_inserted": 8784,
+        "rows_processed": 8784,
+        "rows_rejected": 0,
+        "run_id": "b52ffc2ab51e40cdbda13b8253ccba98",
+        "started_at": "2026-09-17 16:47:22.618138",
+        "target_key": "weather",
+        "validation_failure_count": 0
+      },
+      {
+        "finished_at": "2026-09-17 16:47:19.837961",
+        "pipeline_type": "ingest",
+        "rows_inserted": 265,
+        "rows_processed": 265,
+        "rows_rejected": 0,
+        "run_id": "990ed835563343d48e156131f76d08d9",
+        "started_at": "2026-09-17 16:47:17.037425",
+        "target_key": "taxi_zones",
+        "validation_failure_count": 0
+      },
+      {
+        "finished_at": "2026-09-17 16:47:14.365094",
+        "pipeline_type": "ingest",
+        "rows_inserted": 3581500,
+        "rows_processed": 3582628,
+        "rows_rejected": 1128,
+        "run_id": "2d523ecf5c864721a75329d8a9dae4c5",
+        "started_at": "2026-09-17 16:46:57.322896",
+        "target_key": "taxi_2024_03",
+        "validation_failure_count": 59868
+      },
+      {
+        "finished_at": "2026-09-17 16:46:54.699336",
+        "pipeline_type": "ingest",
+        "rows_inserted": 3006723,
+        "rows_processed": 3007526,
+        "rows_rejected": 803,
+        "run_id": "1239912bd495443887ec2bf2c0a454ba",
+        "started_at": "2026-09-17 16:46:39.632833",
+        "target_key": "taxi_2024_02",
+        "validation_failure_count": 41619
+      },
+      {
+        "finished_at": "2026-09-17 16:46:37.033173",
+        "pipeline_type": "ingest",
+        "rows_inserted": 2963754,
+        "rows_processed": 2964624,
+        "rows_rejected": 870,
+        "run_id": "630ca9b283ff456cbc58173ece6d41fc",
+        "started_at": "2026-09-17 16:46:21.854829",
+        "target_key": "taxi_2024_01",
+        "validation_failure_count": 38507
+      },
+      {
+        "finished_at": "2026-09-17 16:46:18.305997",
+        "pipeline_type": "ingest",
+        "rows_inserted": 8784,
+        "rows_processed": 51885,
+        "rows_rejected": 0,
+        "run_id": "098b60dde33f452089be89b204f6e91a",
+        "started_at": "2026-09-17 16:45:51.313982",
+        "target_key": "air_quality_nyc",
+        "validation_failure_count": 0
+      }
+    ],
+    "validation_failures_by_dataset": [
+      {
+        "execution_count": 4,
+        "target_key": "taxi_trips_update",
+        "total_rejected_records": 2006923,
+        "total_validation_failures": 2579983
+      },
+      {
+        "execution_count": 1,
+        "target_key": "taxi_2024_03",
+        "total_rejected_records": 1128,
+        "total_validation_failures": 59868
+      },
+      {
+        "execution_count": 1,
+        "target_key": "taxi_2024_02",
+        "total_rejected_records": 803,
+        "total_validation_failures": 41619
+      },
+      {
+        "execution_count": 1,
+        "target_key": "taxi_2024_01",
+        "total_rejected_records": 870,
+        "total_validation_failures": 38507
+      },
+      {
+        "execution_count": 2,
+        "target_key": "air_quality_update",
+        "total_rejected_records": 0,
+        "total_validation_failures": 173
+      }
+    ]
+  },
+  "status": "success",
+  "summary": {
+    "execution_count": 24,
+    "total_inserted": 10241119,
+    "total_processed": 12871881,
+    "total_rejected": 2009724,
+    "total_validation_failures": 2720150
+  }
+}
