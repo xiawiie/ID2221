@@ -19,6 +19,10 @@ from urban_data.ingest import ingest_dataset
 from urban_data.optimization import benchmark_analytical_optimizations
 from urban_data.products import materialize_products, product_names
 from urban_data.product_refresh import refresh_affected_products, resolve_refresh_plan
+from urban_data.ml.features import featurize_training_dataset
+from urban_data.ml.compare import compare_ml_approaches
+from urban_data.ml.train import retrain_ml_model, train_ml_model
+from urban_data.ml.training_dataset import build_training_dataset, ml_problem_names
 from urban_data.spark_session import build_spark
 
 
@@ -114,6 +118,78 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser(
         "evaluate-platform",
         help="Run Week 3 platform evaluation experiments and save the report artifact",
+    )
+
+    build_ml = sub.add_parser(
+        "build-ml-dataset",
+        help="Generate the Week 4 ML training dataset from integrated Delta tables",
+    )
+    build_ml.add_argument(
+        "--problem",
+        default="hourly_taxi_demand_by_zone",
+        choices=ml_problem_names(),
+        help="Prediction problem to materialize (default: hourly_taxi_demand_by_zone)",
+    )
+
+    featurize_ml = sub.add_parser(
+        "featurize-ml-dataset",
+        help="Apply the Week 4 reusable Spark ML feature pipeline to training splits",
+    )
+    featurize_ml.add_argument(
+        "--problem",
+        default="hourly_taxi_demand_by_zone",
+        choices=ml_problem_names(),
+        help="Prediction problem to featurize (default: hourly_taxi_demand_by_zone)",
+    )
+
+    train_ml = sub.add_parser(
+        "train-ml-model",
+        help="Train and evaluate the Week 4 Spark MLlib model on featurized splits",
+    )
+    train_ml.add_argument(
+        "--problem",
+        default="hourly_taxi_demand_by_zone",
+        choices=ml_problem_names(),
+    )
+    train_ml.add_argument(
+        "--model-type",
+        default=None,
+        help="Model type from config/ml_training.yml (default: gbt_regressor)",
+    )
+
+    retrain_ml = sub.add_parser(
+        "retrain-ml-model",
+        help="Refit feature pipeline and retrain the model on refreshed data",
+    )
+    retrain_ml.add_argument(
+        "--problem",
+        default="hourly_taxi_demand_by_zone",
+        choices=ml_problem_names(),
+    )
+    retrain_ml.add_argument(
+        "--model-type",
+        default=None,
+        help="Model type from config/ml_training.yml (default: gbt_regressor)",
+    )
+    retrain_ml.add_argument(
+        "--rebuild-dataset",
+        action="store_true",
+        help="Regenerate Task 1 training splits from Gold before featurizing",
+    )
+
+    compare_ml = sub.add_parser(
+        "compare-ml-approaches",
+        help="Compare Approach A (raw files) vs Approach B (integrated platform)",
+    )
+    compare_ml.add_argument(
+        "--problem",
+        default="hourly_taxi_demand_by_zone",
+        choices=ml_problem_names(),
+    )
+    compare_ml.add_argument(
+        "--skip-approach-b-refresh",
+        action="store_true",
+        help="Reuse existing Approach B dataset and omit its rebuild timing",
     )
 
     args = parser.parse_args(argv)
@@ -233,6 +309,90 @@ def main(argv: list[str] | None = None) -> int:
         spark = build_spark(app_name="urban-data-week3-evaluate")
         try:
             print(json.dumps(evaluate_platform(spark), default=str, indent=2, sort_keys=True))
+        finally:
+            spark.stop()
+        return 0
+
+    if args.command == "build-ml-dataset":
+        spark = build_spark(app_name="urban-data-week4-build-ml-dataset")
+        try:
+            print(
+                json.dumps(
+                    build_training_dataset(spark, args.problem),
+                    default=str,
+                    indent=2,
+                    sort_keys=True,
+                )
+            )
+        finally:
+            spark.stop()
+        return 0
+
+    if args.command == "featurize-ml-dataset":
+        spark = build_spark(app_name="urban-data-week4-featurize-ml-dataset")
+        try:
+            print(
+                json.dumps(
+                    featurize_training_dataset(spark, args.problem),
+                    default=str,
+                    indent=2,
+                    sort_keys=True,
+                )
+            )
+        finally:
+            spark.stop()
+        return 0
+
+    if args.command == "train-ml-model":
+        spark = build_spark(app_name="urban-data-week4-train-ml-model")
+        try:
+            print(
+                json.dumps(
+                    train_ml_model(spark, args.problem, model_type=args.model_type),
+                    default=str,
+                    indent=2,
+                    sort_keys=True,
+                )
+            )
+        finally:
+            spark.stop()
+        return 0
+
+    if args.command == "retrain-ml-model":
+        spark = build_spark(app_name="urban-data-week4-retrain-ml-model")
+        try:
+            print(
+                json.dumps(
+                    retrain_ml_model(
+                        spark,
+                        args.problem,
+                        rebuild_dataset=args.rebuild_dataset,
+                        model_type=args.model_type,
+                    ),
+                    default=str,
+                    indent=2,
+                    sort_keys=True,
+                )
+            )
+        finally:
+            spark.stop()
+        return 0
+
+    if args.command == "compare-ml-approaches":
+        spark = build_spark(app_name="urban-data-week4-compare-ml-approaches")
+        try:
+            print(
+                json.dumps(
+                    compare_ml_approaches(
+                        spark,
+                        args.problem,
+                        refresh_approach_b=not args.skip_approach_b_refresh,
+                    ),
+                    default=str,
+                    indent=2,
+                    sort_keys=True,
+                )
+            )
         finally:
             spark.stop()
         return 0

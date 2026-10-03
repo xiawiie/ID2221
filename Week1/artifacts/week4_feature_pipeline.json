@@ -1,0 +1,78 @@
+{
+  "categorical_features": [
+    "pickup_zone",
+    "pickup_borough",
+    "pickup_service_zone",
+    "pickup_month"
+  ],
+  "discussion": {
+    "extension_points": [
+      "Add columns to ml_training.yml categorical_features or numeric_features",
+      "Toggle one_hot_encode for linear models",
+      "Reuse the saved PipelineModel during retraining in Task 3"
+    ],
+    "most_preprocessing": [
+      "pickup_zone StringIndexer (265 TLC zones)",
+      "Imputer on weather and PM2.5 numeric columns",
+      "VectorAssembler combining indexed categories and numeric lags"
+    ],
+    "most_valuable_features": [
+      "demand_lag_1h",
+      "demand_lag_24h",
+      "demand_lag_168h",
+      "hour_of_day",
+      "pickup_zone"
+    ]
+  },
+  "feature_engineering": {
+    "imputer_strategy": "median",
+    "one_hot_encode": false,
+    "scale_numeric": true
+  },
+  "features_column": "features",
+  "generated_at_utc": "2026-10-03T12:21:52.974228+00:00",
+  "input_dataset_dir": "D:\\DD2221\\ID2221-main\\Week1\\lakehouse\\ml\\hourly_zone_demand",
+  "label_column": "label",
+  "metadata_columns": [
+    "pickup_zone",
+    "pickup_hour_local",
+    "pickup_month",
+    "service_date",
+    "dataset_split"
+  ],
+  "model_path": "D:\\DD2221\\ID2221-main\\Week1\\lakehouse\\ml\\models\\hourly_zone_demand\\feature_pipeline",
+  "numeric_features": [
+    "hour_of_day",
+    "day_of_week",
+    "is_weekend",
+    "weather_temp",
+    "weather_precipitation",
+    "weather_wind_speed",
+    "weather_relative_humidity",
+    "air_pm25_mean",
+    "demand_lag_1h",
+    "demand_lag_24h",
+    "demand_lag_168h"
+  ],
+  "output_paths": {
+    "test": "D:\\DD2221\\ID2221-main\\Week1\\lakehouse\\ml\\hourly_zone_demand_featurized\\test",
+    "train": "D:\\DD2221\\ID2221-main\\Week1\\lakehouse\\ml\\hourly_zone_demand_featurized\\train",
+    "validation": "D:\\DD2221\\ID2221-main\\Week1\\lakehouse\\ml\\hourly_zone_demand_featurized\\validation"
+  },
+  "pipeline_stages": [
+    "StringIndexer(pickup_zone)",
+    "StringIndexer(pickup_borough)",
+    "StringIndexer(pickup_service_zone)",
+    "StringIndexer(pickup_month)",
+    "Imputer(strategy=median)",
+    "VectorAssembler",
+    "StandardScaler"
+  ],
+  "problem": "hourly_taxi_demand_by_zone",
+  "row_counts": {
+    "test": 98000,
+    "train": 115133,
+    "validation": 41453
+  },
+  "target_column": "trip_count"
+}

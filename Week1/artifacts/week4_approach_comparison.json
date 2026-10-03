@@ -1,0 +1,140 @@
+{
+  "approach_a": {
+    "approach": "A",
+    "description": "Built directly from raw TLC, zone, weather, and PM2.5 files",
+    "duration_ms": 8446.899800095707,
+    "implementation_steps": [
+      "Load three yellow taxi Parquet files from datasets/",
+      "Load taxi zone lookup CSV",
+      "Load city weather CSV and derive hourly timestamps",
+      "Load national PM2.5 CSV, filter NYC counties, aggregate to UTC hours",
+      "Rename taxi columns and derive trip duration and pickup hour fields",
+      "Apply raw-path cleaning rules (times, distance, zone references)",
+      "Join pickup and dropoff zones, weather, and air quality",
+      "Aggregate accepted trips to pickup zone and local hour",
+      "Derive temporal features and lag demand columns",
+      "Assign chronological train, validation, and test splits"
+    ],
+    "output_path": "D:\\DD2221\\ID2221-main\\Week1\\lakehouse\\ml\\hourly_zone_demand_approach_a\\full",
+    "raw_inputs": [
+      "D:\\DD2221\\ID2221-main\\Week1\\datasets\\yellow_tripdata_2024-01.parquet",
+      "D:\\DD2221\\ID2221-main\\Week1\\datasets\\yellow_tripdata_2024-02.parquet",
+      "D:\\DD2221\\ID2221-main\\Week1\\datasets\\yellow_tripdata_2024-03.parquet",
+      "D:\\DD2221\\ID2221-main\\Week1\\datasets\\taxi_zone_lookup.csv",
+      "D:\\DD2221\\ID2221-main\\Week1\\datasets\\weather.csv",
+      "D:\\DD2221\\ID2221-main\\Week1\\datasets\\hourly_88101_2024.csv"
+    ],
+    "row_counts": {
+      "full": 192544,
+      "test": 44225,
+      "train": 109014,
+      "validation": 39305
+    },
+    "source_line_count": 289
+  },
+  "approach_b": {
+    "approach": "B",
+    "description": "Built from integrated Gold Delta table produced by Weeks 1-3",
+    "duration_ms": 36728.65099995397,
+    "implementation_steps": [
+      "Read pre-integrated gold/integrated_taxi_trips Delta table",
+      "Aggregate accepted trips to pickup zone and local hour",
+      "Derive temporal features and lag demand columns",
+      "Assign chronological train, validation, and test splits",
+      "Persist reusable Task 1 training splits under lakehouse/ml/"
+    ],
+    "output_path": "D:\\DD2221\\ID2221-main\\Week1\\lakehouse\\ml\\hourly_zone_demand\\full",
+    "row_counts": {
+      "full": 254586,
+      "test": 98000,
+      "train": 115133,
+      "validation": 41453
+    },
+    "source_line_count": 192
+  },
+  "comparison": {
+    "dataset_build_time_ms": {
+      "approach_a": 8446.899800095707,
+      "approach_b": 36728.65099995397,
+      "platform_speedup_x": 0.22998121548505263,
+      "winner": "A"
+    },
+    "implementation_complexity": {
+      "approach_a_source_lines": 289,
+      "approach_a_steps": 10,
+      "approach_b_source_lines": 192,
+      "approach_b_steps": 5,
+      "note": "Platform path requires fewer steps and less bespoke ETL code.",
+      "winner": "B"
+    },
+    "preprocessing_complexity": {
+      "approach_a_joins_and_sources": 4,
+      "approach_b_joins_and_sources": 0,
+      "note": "Approach A repeats loading, cleaning, and multi-table integration.",
+      "winner": "B"
+    },
+    "reproducibility": {
+      "approach_a": [
+        "Depends on ad hoc raw-path script",
+        "No ingestion hash or pipeline run lineage",
+        "Re-running requires repeating full raw ETL"
+      ],
+      "approach_b": [
+        "Config-driven Task 1 builder over Delta Gold",
+        "Reuses Week 1-3 validation and integration outputs",
+        "Supports incremental Gold refresh and Task 3 retrain flow"
+      ],
+      "winner": "B"
+    }
+  },
+  "discussion": {
+    "most_useful_integrated_features": [
+      "pickup_zone and borough attributes",
+      "weather hourly context",
+      "air_pm25_mean"
+    ],
+    "platform_improvements": [
+      "Pre-materialize zone-hour demand as a Week 2-style product",
+      "Record ML dataset builds in pipeline_runs metadata",
+      "Add holiday or event datasets through the same config pattern"
+    ],
+    "reusable_workflow_parts": [
+      "build-ml-dataset",
+      "featurize-ml-dataset",
+      "train-ml-model / retrain-ml-model"
+    ],
+    "week1_decisions_that_helped_ml": [
+      "Gold integrated_taxi_trips removed repeated joins from the ML path",
+      "Quarantine and validation already applied before ML dataset generation",
+      "source_file_month partitioning and YAML dataset config simplified refresh"
+    ]
+  },
+  "equivalence": {
+    "approach_a": {
+      "row_count": 192544,
+      "split_counts": {
+        "test": 44225,
+        "train": 109014,
+        "validation": 39305
+      },
+      "trip_count_avg": 45.24123317267741,
+      "trip_count_sum": 8710928.0
+    },
+    "approach_b": {
+      "row_count": 254586,
+      "split_counts": {
+        "test": 98000,
+        "train": 115133,
+        "validation": 41453
+      },
+      "trip_count_avg": 37.62950044385787,
+      "trip_count_sum": 9579944.0
+    },
+    "equivalent_within_tolerance": false,
+    "row_count_delta": 62042,
+    "split_counts_match": false,
+    "trip_count_sum_delta": 869016.0
+  },
+  "generated_at_utc": "2026-10-03T12:42:15.821190+00:00",
+  "problem": "hourly_taxi_demand_by_zone"
+}
