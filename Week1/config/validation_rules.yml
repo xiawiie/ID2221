@@ -1,0 +1,18 @@
+# Week 3 Task 4 validation rule sets.
+# Add a rule name here and implement it in validation/rules.py to extend the framework.
+
+rule_sets:
+  taxi_trips:
+    - null_or_invalid_trip_times
+    - missing_zone_reference
+    - duplicate_trip_fingerprint
+  taxi_zones:
+    - missing_location_id
+    - duplicate_location_id
+  weather_hourly:
+    - incomplete_time_parts
+    - duplicate_hourly_observation
+  air_quality_hourly_nyc:
+    - null_observation_timestamp
+    - invalid_pm25_value
+    - duplicate_candidate_key

@@ -1,0 +1,96 @@
+{
+  "enabled_rule_names": [
+    "null_or_invalid_trip_times",
+    "missing_zone_reference",
+    "duplicate_trip_fingerprint",
+    "missing_location_id",
+    "duplicate_location_id",
+    "incomplete_time_parts",
+    "duplicate_hourly_observation",
+    "null_observation_timestamp",
+    "invalid_pm25_value",
+    "duplicate_candidate_key"
+  ],
+  "generated_at_utc": "2026-09-23T15:31:43.157918Z",
+  "pipeline_totals": {
+    "total_quarantined_rows": 2009724,
+    "total_validation_failures": 2720150
+  },
+  "quarantine_by_dataset": [
+    {
+      "dataset_key": "taxi_2024_01",
+      "logical_name": "taxi_trips",
+      "reason": "invalid_trip_times_or_null_ts",
+      "row_count": 3054
+    },
+    {
+      "dataset_key": "taxi_2024_02",
+      "logical_name": "taxi_trips",
+      "reason": "invalid_trip_times_or_null_ts",
+      "row_count": 3054
+    },
+    {
+      "dataset_key": "taxi_2024_03",
+      "logical_name": "taxi_trips",
+      "reason": "invalid_trip_times_or_null_ts",
+      "row_count": 3054
+    },
+    {
+      "dataset_key": "taxi_trips_update",
+      "logical_name": "taxi_trips",
+      "reason": "invalid_trip_times_or_null_ts",
+      "row_count": 3054
+    }
+  ],
+  "rule_catalog": {
+    "duplicate_candidate_key": {
+      "category": "duplicate",
+      "description": "More than one air-quality row shares the same site/time candidate key."
+    },
+    "duplicate_hourly_observation": {
+      "category": "duplicate",
+      "description": "More than one weather row shares the same hourly observation timestamp."
+    },
+    "duplicate_location_id": {
+      "category": "duplicate",
+      "description": "More than one taxi zone row shares the same LocationID."
+    },
+    "duplicate_trip_fingerprint": {
+      "category": "duplicate",
+      "description": "More than one row shares the same taxi trip fingerprint in the batch."
+    },
+    "incomplete_time_parts": {
+      "category": "incomplete",
+      "description": "Weather row is missing one or more date/time parts or derived timestamp."
+    },
+    "invalid_pm25_value": {
+      "category": "invalid_value",
+      "description": "PM2.5 measurement is NULL or negative."
+    },
+    "missing_location_id": {
+      "category": "incomplete",
+      "description": "Taxi zone lookup row is missing LocationID."
+    },
+    "missing_zone_reference": {
+      "category": "missing_reference",
+      "description": "Pickup or dropoff LocationID is absent from the taxi zone lookup."
+    },
+    "null_observation_timestamp": {
+      "category": "incomplete",
+      "description": "Air-quality row has an unparseable GMT timestamp."
+    },
+    "null_or_invalid_trip_times": {
+      "category": "incomplete",
+      "description": "Pickup or dropoff timestamp is missing or dropoff is not after pickup."
+    }
+  },
+  "rule_categories": [
+    "duplicate",
+    "invalid_value",
+    "missing_reference",
+    "incomplete",
+    "schema"
+  ],
+  "status": "success",
+  "validation_events": []
+}

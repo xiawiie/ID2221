@@ -6,6 +6,7 @@ from pyspark.sql import functions as F
 from pyspark.sql.types import StructType
 
 from urban_data.paths import LAKEHOUSE, METADATA_RUNS
+from urban_data.monitoring import record_from_ingestion_summary, record_validation_events
 from urban_data.schemas import (
     AIR_QUALITY_RAW_SCHEMA,
     INGESTION_RUNS_SCHEMA,
@@ -26,7 +27,8 @@ from urban_data.transforms import (
     utc_now,
     with_bronze_metadata,
 )
-from urban_data.validation import (
+from urban_data.validation import is_schema_validation_error
+from urban_data.validation.schema import (
     expected_column_names,
     validate_column_names,
     validate_parquet_schema,
@@ -62,6 +64,21 @@ def _sql_literal(value: str) -> str:
     return value.replace("'", "''")
 
 
+def _valid_location_ids(spark: SparkSession) -> list[int] | None:
+    zones_path = _lake_path("silver/taxi_zones")
+    if not zones_path.exists():
+        return None
+    return [
+        int(row.location_id)
+        for row in spark.read.format("delta")
+        .load(str(zones_path))
+        .select("location_id")
+        .distinct()
+        .collect()
+        if row.location_id is not None
+    ]
+
+
 def _purge_quarantine_source(
     spark: SparkSession, quarantine_path, rel_source: str
 ) -> None:
@@ -81,7 +98,15 @@ def _write_quarantine(
 ) -> None:
     rows_quarantined = quarantined.count()
     if rows_quarantined:
-        frame = quarantined.withColumn("quarantine_reason", F.lit(quarantine_reason))
+        if "validation_rules" in quarantined.columns:
+            frame = quarantined.withColumn(
+                "quarantine_reason",
+                F.coalesce(F.col("validation_rules"), F.lit(quarantine_reason)),
+            )
+        else:
+            frame = quarantined.withColumn(
+                "quarantine_reason", F.lit(quarantine_reason)
+            )
         writer = frame.write.format("delta").mode("overwrite").option("mergeSchema", "true")
         if quarantine_path.exists():
             writer = writer.option(
@@ -140,7 +165,12 @@ def _skip_payload(dataset_key: str, source_sha256: str, run_id: str) -> dict:
 
 
 def _append_skipped_run(
-    spark: SparkSession, cfg: dict, source_sha256: str, rel_source: str
+    spark: SparkSession,
+    cfg: dict,
+    source_sha256: str,
+    rel_source: str,
+    *,
+    pipeline_type: str = "ingest",
 ) -> str:
     run_id = new_run_id()
     finished_at = utc_now()
@@ -163,6 +193,24 @@ def _append_skipped_run(
             "error_message": "already ingested with same hash and schema version",
         },
     )
+    record_from_ingestion_summary(
+        spark,
+        {
+            "run_id": run_id,
+            "dataset_key": cfg["key"],
+            "dataset_name": cfg["logical_name"],
+            "schema_version": cfg["schema_version"],
+            "rows_read": 0,
+            "rows_accepted": 0,
+            "rows_quarantined": 0,
+            "rows_warned": 0,
+            "started_at": finished_at,
+            "finished_at": finished_at,
+            "status": "skipped",
+            "error_message": "already ingested with same hash and schema version",
+        },
+        pipeline_type=pipeline_type,
+    )
     return run_id
 
 
@@ -175,26 +223,34 @@ def _append_failed_run(
     rel_source: str,
     source_sha256: str,
     exc: BaseException,
+    pipeline_type: str = "ingest",
 ) -> None:
-    _append_run(
-        spark,
-        {
-            "run_id": run_id,
-            "dataset_key": cfg["key"],
-            "dataset_name": cfg["logical_name"],
-            "source_file": rel_source,
-            "source_sha256": source_sha256,
-            "schema_version": cfg["schema_version"],
-            "rows_read": 0,
-            "rows_accepted": 0,
-            "rows_quarantined": 0,
-            "rows_warned": 0,
-            "started_at": started_at,
-            "finished_at": utc_now(),
-            "status": "failed",
-            "error_message": str(exc)[:2000],
-        },
-    )
+    failed = {
+        "run_id": run_id,
+        "dataset_key": cfg["key"],
+        "dataset_name": cfg["logical_name"],
+        "source_file": rel_source,
+        "source_sha256": source_sha256,
+        "schema_version": cfg["schema_version"],
+        "rows_read": 0,
+        "rows_accepted": 0,
+        "rows_quarantined": 0,
+        "rows_warned": 0,
+        "started_at": started_at,
+        "finished_at": utc_now(),
+        "status": "failed",
+        "error_message": str(exc)[:2000],
+    }
+    _append_run(spark, failed)
+    record_from_ingestion_summary(spark, failed, pipeline_type=pipeline_type)
+    if is_schema_validation_error(exc):
+        record_validation_events(
+            spark,
+            run_id=run_id,
+            target_key=cfg["key"],
+            pipeline_type=pipeline_type,
+            events={"unsupported_schema_change": 1},
+        )
 
 
 def _write_delta(df, path, *, partition_by: list[str] | None = None, mode: str = "overwrite"):
@@ -221,6 +277,8 @@ def _finish_run(
     bronze_path,
     silver_path,
     quarantine_path,
+    pipeline_type: str = "ingest",
+    validation_rule_counts: dict[str, int] | None = None,
 ) -> dict:
     finished_at = utc_now()
     summary = {
@@ -240,6 +298,12 @@ def _finish_run(
         "error_message": None,
     }
     _append_run(spark, summary)
+    record_from_ingestion_summary(
+        spark,
+        summary,
+        pipeline_type=pipeline_type,
+        validation_rule_counts=validation_rule_counts,
+    )
     summary["bronze_path"] = str(bronze_path)
     summary["silver_path"] = str(silver_path)
     summary["quarantine_path"] = str(quarantine_path)
@@ -283,7 +347,14 @@ def ingest_taxi_dataset(spark: SparkSession, cfg: dict, *, force: bool = False) 
         )
         bronze.write.format("delta").mode("overwrite").save(str(bronze_path))
 
-        accepted, quarantined = split_taxi_quality(bronze, cfg["file_month"])
+        accepted_outcome = split_taxi_quality(
+            bronze,
+            cfg["file_month"],
+            valid_location_ids=_valid_location_ids(spark),
+        )
+        accepted = accepted_outcome.accepted
+        quarantined = accepted_outcome.quarantined
+        validation_rule_counts = accepted_outcome.rule_counts
         rows_accepted = accepted.count()
         rows_quarantined = quarantined.count()
         if rows_read != rows_accepted + rows_quarantined:
@@ -326,6 +397,7 @@ def ingest_taxi_dataset(spark: SparkSession, cfg: dict, *, force: bool = False) 
             bronze_path=bronze_path,
             silver_path=silver_path,
             quarantine_path=quarantine_path,
+            validation_rule_counts=validation_rule_counts,
         )
     except Exception as exc:
         _append_failed_run(
@@ -390,7 +462,10 @@ def ingest_csv_dataset(
         )
         bronze.write.format("delta").mode("overwrite").save(str(bronze_path))
 
-        accepted, quarantined = transform_split(bronze)
+        outcome = transform_split(bronze)
+        accepted = outcome.accepted
+        quarantined = outcome.quarantined
+        validation_rule_counts = outcome.rule_counts
         rows_accepted = accepted.count()
         rows_quarantined = quarantined.count()
         if cfg["kind"] != "air_quality_hourly_nyc" and rows_read != rows_accepted + rows_quarantined:
@@ -437,6 +512,7 @@ def ingest_csv_dataset(
             bronze_path=bronze_path,
             silver_path=silver_path,
             quarantine_path=quarantine_path,
+            validation_rule_counts=validation_rule_counts,
         )
     except Exception as exc:
         _append_failed_run(
@@ -510,7 +586,10 @@ def ingest_air_quality_dataset(spark: SparkSession, cfg: dict, *, force: bool = 
         )
         bronze.write.format("delta").mode("overwrite").save(str(bronze_path))
 
-        stations, quarantined = split_air_station_quality(bronze)
+        station_outcome = split_air_station_quality(bronze)
+        stations = station_outcome.accepted
+        quarantined = station_outcome.quarantined
+        validation_rule_counts = station_outcome.rule_counts
         station_count = stations.count()
         rows_quarantined = quarantined.count()
         if rows_read != station_count + rows_quarantined:
@@ -548,6 +627,7 @@ def ingest_air_quality_dataset(spark: SparkSession, cfg: dict, *, force: bool = 
             bronze_path=bronze_path,
             silver_path=silver_path,
             quarantine_path=quarantine_path,
+            validation_rule_counts=validation_rule_counts,
         )
     except Exception as exc:
         _append_failed_run(

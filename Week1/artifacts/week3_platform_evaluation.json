@@ -1,0 +1,109 @@
+{
+  "discussion": {
+    "future_dataset_support": "New datasets add YAML entries plus optional validation rules; only new physical schemas or transform kinds need Python. Incremental and refresh wiring reuse the same ingest and product dependency patterns.",
+    "largest_modifications": "Incremental taxi merge and Gold append, selective product refresh with dependency planning, and the validation rule engine required the most new code. Monitoring layered on top of existing run metadata.",
+    "redesign_today": "Use a single unified run-metadata schema from day one, encode product dependency graphs earlier, and treat validation rules as pure config where masks are composable. Separate operational metadata tables sooner to simplify overhead measurement.",
+    "week1_decisions_that_simplified_maintenance": "Configuration-driven datasets.yml, medallion layering with quarantine, source_file_month partitioning, and ingestion_runs lineage made Week 3 incremental merge and monitoring extensions incremental rather than a rewrite."
+  },
+  "environment": {
+    "lakehouse": "D:\\DD2221\\ID2221-main\\Week1\\lakehouse",
+    "spark_app": "week3-eval"
+  },
+  "generated_at_utc": "2026-09-23T15:39:48.363640Z",
+  "measurements": {
+    "analytical_refresh": {
+      "latest_finished_at": "2026-09-23 15:26:56.098541",
+      "per_product": [
+        {
+          "duration_ms": 13048.07,
+          "rows_inserted": 127,
+          "target_key": "air_quality_impact_summary"
+        },
+        {
+          "duration_ms": 6202.33,
+          "rows_inserted": 956,
+          "target_key": "daily_mobility_summary"
+        },
+        {
+          "duration_ms": 5867.29,
+          "rows_inserted": 1209,
+          "target_key": "taxi_zone_monthly_statistics"
+        },
+        {
+          "duration_ms": 5813.071,
+          "rows_inserted": 49,
+          "target_key": "weather_impact_summary"
+        }
+      ],
+      "product_count": 4,
+      "total_duration_ms": 30930.761000000002
+    },
+    "incremental_runs": [],
+    "incremental_update": null,
+    "integrate_incremental": null,
+    "monitoring_overhead": {
+      "available": true,
+      "median_ms": 702.951,
+      "note": "Synthetic probe rows appended to pipeline_runs during evaluation",
+      "runs": [
+        1090.646,
+        702.951,
+        673.14
+      ]
+    },
+    "storage_overhead": {
+      "group_totals_bytes": {
+        "core_analytical": 2238538791,
+        "week3_operational_overhead": 570720
+      },
+      "operational_overhead_percent": 0.0255,
+      "tables_bytes": {
+        "bronze/air_quality_hourly_nyc": 130413,
+        "bronze/taxi_trips/incremental_2024-04": 76735819,
+        "bronze/taxi_trips/yellow_tripdata_2024-01": 64258955,
+        "bronze/taxi_trips/yellow_tripdata_2024-02": 64911868,
+        "bronze/taxi_trips/yellow_tripdata_2024-03": 77299859,
+        "bronze/taxi_zones": 8404,
+        "bronze/weather_hourly": 74483,
+        "gold/integrated_taxi_trips": 1038909174,
+        "metadata/ingestion_runs": 101238,
+        "metadata/pipeline_runs": 34597,
+        "products/air_quality_impact_summary": 25374,
+        "products/daily_mobility_summary": 67234,
+        "products/taxi_zone_monthly_statistics": 88924,
+        "products/weather_impact_summary": 39133,
+        "quarantine/air_quality_hourly_nyc": 0,
+        "quarantine/taxi_trips": 434885,
+        "quarantine/taxi_zones": 0,
+        "quarantine/weather_hourly": 0,
+        "silver/air_quality_hourly_nyc": 115358,
+        "silver/taxi_trips": 915738551,
+        "silver/taxi_zones": 8407,
+        "silver/weather_hourly": 126835
+      },
+      "total_bytes": 2239109511
+    },
+    "validation_overhead": {
+      "available": true,
+      "baseline_median_ms": 313.119,
+      "baseline_runs_ms": [
+        318.124,
+        313.119,
+        306.276
+      ],
+      "full_runs_ms": [
+        3755.792,
+        3476.221,
+        3367.503
+      ],
+      "full_validation_median_ms": 3476.221,
+      "overhead_ms": 3163.102,
+      "overhead_percent": 90.9925,
+      "rule_count": 3,
+      "sample_rows": 100000
+    }
+  },
+  "observed_pipeline_metadata_available": true,
+  "protocol": "Observed pipeline_runs plus 3-run micro-benchmarks for overhead",
+  "status": "success"
+}

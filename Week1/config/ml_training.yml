@@ -1,0 +1,73 @@
+schema_version: "1"
+
+default_problem: hourly_taxi_demand_by_zone
+
+feature_engineering:
+  imputer_strategy: median
+  scale_numeric: true
+  one_hot_encode: false
+  metadata_columns:
+    - pickup_zone
+    - pickup_hour_local
+    - pickup_month
+    - service_date
+    - dataset_split
+  output:
+    featurized_suffix: featurized
+    model_dir: models
+
+problems:
+  hourly_taxi_demand_by_zone:
+    description: >
+      Predict the number of accepted yellow-taxi pickups in each TLC pickup zone
+      for each local hour, using temporal, location, environmental, and lagged
+      demand features derived from the integrated Gold table.
+    source_table: gold/integrated_taxi_trips
+    grain:
+      - pickup_zone
+      - pickup_hour_local
+    target_column: trip_count
+    categorical_features:
+      - pickup_zone
+      - pickup_borough
+      - pickup_service_zone
+      - pickup_month
+    numeric_features:
+      - hour_of_day
+      - day_of_week
+      - is_weekend
+      - weather_temp
+      - weather_precipitation
+      - weather_wind_speed
+      - weather_relative_humidity
+      - air_pm25_mean
+      - demand_lag_1h
+      - demand_lag_24h
+      - demand_lag_168h
+    lag_hours: [1, 24, 168]
+    require_complete_lags: true
+    splits:
+      train_end_date: "2024-02-29"
+      validation_end_date: "2024-03-15"
+    output:
+      dataset_key: hourly_zone_demand
+
+model:
+  default_type: gbt_regressor
+  label_column: label
+  features_column: features
+  prediction_column: prediction
+  metrics: [rmse, mae, r2]
+  types:
+    gbt_regressor:
+      artifact_name: gbt_regressor
+      class: GBTRegressor
+      params:
+        maxIter: 50
+        maxDepth: 6
+        stepSize: 0.1
+        subsamplingRate: 0.8
+        seed: 42
+  baseline:
+    name: seasonal_naive_lag_24h
+    prediction_column: demand_lag_24h

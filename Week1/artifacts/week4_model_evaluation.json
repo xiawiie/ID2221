@@ -1,0 +1,61 @@
+{
+  "discussion": {
+    "multiple_tasks": "Add a new problems.* entry with its own target and model config",
+    "new_features": "Extend ml_training.yml and rerun featurize-ml-dataset",
+    "reusable_components": [
+      "Task 1 dataset builder",
+      "Task 2 feature PipelineModel",
+      "Task 3 regressor artifact and evaluation helpers"
+    ]
+  },
+  "evaluation": {
+    "baseline_test": {
+      "mae": 10.052469387755101,
+      "name": "seasonal_naive_lag_24h",
+      "r2": 0.765210574785077,
+      "rmse": 26.42119279236705
+    },
+    "test": {
+      "mae": 6.957585419341683,
+      "r2": 0.923904357057631,
+      "rmse": 15.041565843963882
+    },
+    "validation": {
+      "mae": 8.40303428794887,
+      "r2": 0.9392982289031455,
+      "rmse": 19.58490112473467
+    }
+  },
+  "features_column": "features",
+  "featurized_input_dir": "D:\\DD2221\\ID2221-main\\Week1\\lakehouse\\ml\\hourly_zone_demand_featurized",
+  "generated_at_utc": "2026-10-03T12:24:12.914568+00:00",
+  "label_column": "label",
+  "metrics": [
+    "rmse",
+    "mae",
+    "r2"
+  ],
+  "model_params": {
+    "maxDepth": 6,
+    "maxIter": 50,
+    "seed": 42,
+    "stepSize": 0.1,
+    "subsamplingRate": 0.8
+  },
+  "model_path": "D:\\DD2221\\ID2221-main\\Week1\\lakehouse\\ml\\models\\hourly_zone_demand\\gbt_regressor",
+  "model_type": "gbt_regressor",
+  "prediction_column": "prediction",
+  "prediction_output_dir": "D:\\DD2221\\ID2221-main\\Week1\\lakehouse\\ml\\hourly_zone_demand_predictions",
+  "problem": "hourly_taxi_demand_by_zone",
+  "reproducibility": {
+    "feature_pipeline_path": "D:\\DD2221\\ID2221-main\\Week1\\lakehouse\\ml\\models\\hourly_zone_demand\\feature_pipeline",
+    "random_seed": 42,
+    "retrain_steps": [
+      "build-ml-dataset",
+      "featurize-ml-dataset",
+      "train-ml-model"
+    ]
+  },
+  "run_id": "b1dc1fa77da7489f83d46f34dbb9031f",
+  "training_duration_ms": 22419.716999999997
+}

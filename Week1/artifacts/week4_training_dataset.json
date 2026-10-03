@@ -1,0 +1,50 @@
+{
+  "assumptions": [
+    "Demand is measured as accepted trip count grouped by pickup zone and local hour.",
+    "Only hours with at least one accepted trip are materialized; zero-demand hours are omitted.",
+    "Weather and PM2.5 values are city-wide hourly context attached during Week 1 integration.",
+    "Rows with incomplete lag history are excluded when require_complete_lags is true.",
+    "Chronological split dates prevent future leakage into training."
+  ],
+  "feature_columns": [
+    "pickup_zone",
+    "pickup_borough",
+    "pickup_service_zone",
+    "pickup_month",
+    "hour_of_day",
+    "day_of_week",
+    "is_weekend",
+    "weather_temp",
+    "weather_precipitation",
+    "weather_wind_speed",
+    "weather_relative_humidity",
+    "air_pm25_mean",
+    "demand_lag_1h",
+    "demand_lag_24h",
+    "demand_lag_168h"
+  ],
+  "generated_at_utc": "2026-10-03T12:42:07.229161+00:00",
+  "grain": [
+    "pickup_zone",
+    "pickup_hour_local"
+  ],
+  "output_paths": {
+    "full": "D:\\DD2221\\ID2221-main\\Week1\\lakehouse\\ml\\hourly_zone_demand\\full",
+    "test": "D:\\DD2221\\ID2221-main\\Week1\\lakehouse\\ml\\hourly_zone_demand\\test",
+    "train": "D:\\DD2221\\ID2221-main\\Week1\\lakehouse\\ml\\hourly_zone_demand\\train",
+    "validation": "D:\\DD2221\\ID2221-main\\Week1\\lakehouse\\ml\\hourly_zone_demand\\validation"
+  },
+  "problem": "hourly_taxi_demand_by_zone",
+  "row_counts": {
+    "full": 254586,
+    "test": 98000,
+    "train": 115133,
+    "validation": 41453
+  },
+  "schema_version": "1",
+  "splits": {
+    "train_end_date": "2024-02-29",
+    "validation_end_date": "2024-03-15"
+  },
+  "target_column": "trip_count"
+}

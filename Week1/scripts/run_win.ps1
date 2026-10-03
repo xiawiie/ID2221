@@ -8,13 +8,23 @@ param(
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 
-$condaEnv = "id2221-week1"
-$python = "D:\anaconda3\envs\$condaEnv\python.exe"
-if (-not (Test-Path $python)) {
-    throw "Conda env '$condaEnv' not found. Run: conda create -n id2221-week1 python=3.12 openjdk=17 -y"
+$python = $env:ID2221_PYTHON
+if (-not $python -and $env:CONDA_PREFIX) {
+    $python = Join-Path $env:CONDA_PREFIX "python.exe"
 }
 
-$env:JAVA_HOME = "D:\anaconda3\envs\$condaEnv\Library"
+$javaHome = $env:ID2221_JAVA_HOME
+if (-not $javaHome -and $env:CONDA_PREFIX) {
+    $javaHome = Join-Path $env:CONDA_PREFIX "Library"
+}
+if (-not $python -or -not (Test-Path $python)) {
+    throw "Activate the id2221-week1 Conda environment first, or set ID2221_PYTHON to its python.exe path."
+}
+if (-not $javaHome -or -not (Test-Path (Join-Path $javaHome "bin\java.exe"))) {
+    throw "OpenJDK 17 was not found. Activate the Conda environment or set ID2221_JAVA_HOME to the JDK home."
+}
+
+$env:JAVA_HOME = $javaHome
 $env:HADOOP_HOME = Join-Path $root "tools\hadoop"
 $env:PYTHONPATH = Join-Path $root "src"
 $env:PYSPARK_PYTHON = $python
